@@ -22,3 +22,4 @@ dist/
 # Operating system files
 .DS_Store
 Thumbs.db
+workers/business-dash/wrangler.jsonc
