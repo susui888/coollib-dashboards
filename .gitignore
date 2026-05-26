@@ -1,0 +1,24 @@
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data and dependencies
+node_modules/
+.pnpm-store/
+
+# Cloudflare Wrangler local development files (Crucial)
+.wrangler/
+.mf/
+
+# Local environment variables / Secrets (CRITICAL FOR SECURITY)
+# 这一项绝对不能删！你本地的数据库密钥和敏感配置都会写在这里
+.dev.vars
+
+# Build outputs
+dist/
+.cf/
+
+# Operating system files
+.DS_Store
+Thumbs.db
