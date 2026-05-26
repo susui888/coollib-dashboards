@@ -12,17 +12,17 @@ export async function fetchMiniMonitorData(db: D1Database): Promise<{
     LIMIT 1
   `;
 
-	// 2. 实时基础设施指标查询（最新时间戳内切）
 	const runtimeQuery = `
-    SELECT m.metric_name, m.metric_value
-    FROM app_metrics m
-    INNER JOIN (
-      SELECT metric_name, MAX(timestamp) as max_ts
-      FROM app_metrics
-      GROUP BY metric_name
-    ) latest
-    ON m.metric_name = latest.metric_name AND m.timestamp = latest.max_ts
-  `;
+		SELECT * FROM (SELECT metric_name, metric_value FROM app_metrics WHERE metric_name = 'process.cpu.usage' ORDER BY timestamp DESC LIMIT 1)
+		UNION ALL
+		SELECT * FROM (SELECT metric_name, metric_value FROM app_metrics WHERE metric_name = 'jvm.memory.used' ORDER BY timestamp DESC LIMIT 1)
+		UNION ALL
+		SELECT * FROM (SELECT metric_name, metric_value FROM app_metrics WHERE metric_name = 'spring.security.http.secured.requests' ORDER BY timestamp DESC LIMIT 1)
+		UNION ALL
+		SELECT * FROM (SELECT metric_name, metric_value FROM app_metrics WHERE metric_name = 'hikaricp.connections.active' ORDER BY timestamp DESC LIMIT 1)
+		UNION ALL
+		SELECT * FROM (SELECT metric_name, metric_value FROM app_metrics WHERE metric_name = 'process.uptime' ORDER BY timestamp DESC LIMIT 1);
+	`;
 
 	const [scaleResult, runtimeResults] = await Promise.all([
 		db.prepare(scaleQuery).first<ScaleMetrics>(),
