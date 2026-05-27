@@ -3,7 +3,7 @@ import { MetricQueryResult } from "./types";
 export async function fetchAnalyticsData(db: D1Database, range: string): Promise<MetricQueryResult[]> {
 	const timeFormat = range === "24h" ? '%H:%M' : '%m-%d';
 
-	// 1. 构建一个静态的时间锚点（对齐到固定的 30 分钟或当天整点）
+	// 1. 构建一个静态的时间锚点（对齐到固定的 30 分钟或当天整点，保持编译计划缓存）
 	let baseTimeAnchor: string;
 	if (range === "24h") {
 		// 将 'now' 的分钟数向下取整到 30 的倍数（例如：18:54 -> 18:30:00）
@@ -15,17 +15,17 @@ export async function fetchAnalyticsData(db: D1Database, range: string): Promise
 
 	const timeFilter = range === "24h" ? "-24 hours" : `-${range} days`;
 
-	// 2. 在 WHERE 条件中使用 baseTimeAnchor
+	// 2. 基于宽表 app_metrics2 的极致精简查询
 	const query = `
     SELECT
       strftime('${timeFormat}', timestamp) as time_label,
-      ROUND(MAX(CASE WHEN metric_name = 'process.cpu.usage' THEN metric_value END) * 100, 1) as cpu,
-      ROUND(MAX(CASE WHEN metric_name = 'jvm.memory.used' THEN metric_value END) / 1024 / 1024, 0) as memory,
-      MAX(CASE WHEN metric_name = 'spring.security.http.secured.requests' THEN metric_value END) as requests,
-      MAX(CASE WHEN metric_name = 'hikaricp.connections.active' THEN metric_value END) as db_conn,
-      ROUND(MAX(CASE WHEN metric_name = 'process.uptime' THEN metric_value END) / 3600, 1) as uptime,
+      ROUND(MAX(cpu_usage) * 100, 1) as cpu,
+      ROUND(MAX(jvm_memory_used) / 1024 / 1024, 0) as memory,
+      MAX(http_requests) as requests,
+      MAX(active_db_connections) as db_conn,
+      ROUND(MAX(uptime) / 3600, 1) as uptime,
       MAX(timestamp) as raw_time
-    FROM app_metrics
+    FROM app_metrics2
     WHERE timestamp > datetime(${baseTimeAnchor}, '${timeFilter}')
     GROUP BY time_label
     ORDER BY raw_time ASC
