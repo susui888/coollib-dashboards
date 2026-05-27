@@ -5,11 +5,7 @@
 <img src="https://img.shields.io/badge/D1-Distributed_SQL-f5a623"/>&nbsp;
 <img src="https://img.shields.io/badge/Native-SVG-0f172a"/>&nbsp;
 </p>
-<p>
-<img src="https://img.shields.io/badge/Chart.js-Realtime_Dashboards-FF6384"/>&nbsp;
-<img src="https://img.shields.io/badge/Edge-Cache_Optimized-0aa84f"/>&nbsp;
-<img src="https://img.shields.io/badge/Architecture-Layered_MVR-8B4513"/>
-</p>
+
 
 Distributed edge telemetry and analytics platform powering the realtime observability layers of the CoolLib ecosystem.
 
@@ -48,4 +44,5 @@ Distributed edge telemetry and analytics platform powering the realtime observab
 workers/
 ├── business-dash/
 ├── system-dash/
-└── business-system-svg/
+├── business-system-svg/
+└── metrics-collector/
