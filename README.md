@@ -6,7 +6,6 @@
 <img src="https://img.shields.io/badge/Native-SVG-0f172a"/>&nbsp;
 </p>
 
-
 Distributed edge telemetry and analytics platform powering the realtime observability layers of the CoolLib ecosystem.
 
 ## Ecosystem
