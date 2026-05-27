@@ -6,6 +6,11 @@ export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
 		try {
 			const url = new URL(request.url);
+
+			if (url.pathname !== "/") {
+				return new Response("Not Found", { status: 404 });
+			}
+
 			const cacheKey = new Request(url.toString(), request);
 			const cache = caches.default;
 

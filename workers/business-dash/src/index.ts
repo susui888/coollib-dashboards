@@ -7,6 +7,10 @@ export default {
 		try {
 			const url = new URL(request.url);
 
+			if (url.pathname !== "/") {
+				return new Response("Not Found", { status: 404 });
+			}
+
 			// 1. 边缘缓存匹配 (精确匹配 Query 参数)
 			const cacheKey = new Request(url.toString(), request);
 			const cache = caches.default;

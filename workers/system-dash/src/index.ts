@@ -7,6 +7,10 @@ export default {
 		try {
 			const url = new URL(request.url);
 
+			if (url.pathname !== "/") {
+				return new Response("Not Found", { status: 404 });
+			}
+
 			// 1. 边缘缓存识别 (对 Query 参数范围进行精确键切分)
 			const cacheKey = new Request(url.toString(), request);
 			const cache = caches.default;
