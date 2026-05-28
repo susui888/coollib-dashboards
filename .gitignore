@@ -24,3 +24,4 @@ dist/
 Thumbs.db
 workers/business-dash/wrangler.jsonc
 workers/github-metrics-webhook/wrangler.jsonc
+workers/github-metrics-svg/wrangler.jsonc

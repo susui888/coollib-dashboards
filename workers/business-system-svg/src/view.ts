@@ -39,7 +39,7 @@ export function renderMonitorSvg(scaleData: ScaleMetrics | null, runtimeData: Ru
   </defs>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@600;800&amp;family=JetBrains+Mono:wght@700;800&amp;display=swap');
-    .card { fill: url(#cream-card-gradient); stroke: #E6DFD5; stroke-width: 1.2; rx: 16px; }
+    .card { fill: url(#cream-card-gradient); stroke: #E6DFD5; stroke-width: 1.2; rx: 6px; }
     .title { font-family: "Inter", -apple-system, sans-serif; font-size: 14px; font-weight: 800; fill: #2D2219; letter-spacing: -0.1px; text-transform: uppercase; }
     .label { font-family: "Inter", -apple-system, sans-serif; font-size: 10px; fill: #665C54; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; dominant-baseline: central; }
     .value { font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 800; fill: #2D2219; letter-spacing: -0.2px; text-anchor: end; dominant-baseline: central; }
