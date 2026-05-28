@@ -6,23 +6,14 @@ export interface TotalStats {
 }
 
 export interface D1PushRow {
-	repository_name: string | null;
-	sender_login: string | null;
-	created_at: string | null;
-	branch: string | null;
+	repository_name: string;
+	sender_login: string;
+	created_at: string;
+	branch: string;
 	language: string | null;
-	changed_count: number | null;
+	changed_count: number;
 }
 
-export interface TelemetryData {
-	commits: string;
-	pushes: string;
-	repos: string;
-	lastPush: string;
-	latestRepo: string;
-	branch: string;
-	language: string;
-	actor: string;
-	changed: string;
-	ci: string;
+export interface Env {
+	DB: D1Database;
 }
