@@ -43,7 +43,8 @@ app.post('/api/webhooks/github', async (c) => {
 		return c.json({ success: false, error: "Missing required GitHub headers" }, 400);
 	}
 
-	const rawBody = await c.req.text();
+	//const rawBody = await c.req.text();
+	const rawBody = await c.req.raw.clone().text();
 
 	const isValid = await verifySignature(c.env.GITHUB_WEBHOOK_SECRET, signatureHeader, rawBody);
 	if (!isValid) {
