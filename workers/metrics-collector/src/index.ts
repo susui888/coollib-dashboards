@@ -1,29 +1,33 @@
-/**
- * Metrics Collector Worker
- * Responsibility: Periodically fetch data from Spring Boot Actuator and persist it into the D1 database.
- */
+import { Hono } from 'hono';
 
-// 1. Define environment variables type so env.DB can be properly recognized
 export interface Env {
 	DB: D1Database;
 }
 
-// 2. Define the response structure returned from ryansu.uk/api/stats/counts
 interface StatsCountsResponse {
 	books: number;
 	users: number;
 	loans: number;
 	reviews: number;
-	review_images: number;
+	reviewImage: number;
 }
 
-// 3. Define the response structure for Spring Actuator Metrics
 interface ActuatorMetricResponse {
 	measurements?: Array<{ statistic: string; value: number }>;
 	availableTags?: Array<any>;
 }
 
+const app = new Hono<{ Bindings: Env }>();
+
+app.get('/', (c) =>
+	c.text('Metrics Collector Worker is running.'));
+
+
 export default {
+	// 转发 HTTP 请求到 Hono 路由
+	fetch: app.fetch,
+
+	// 响应由 wrangler.jsonc 或网页端配置的 Cron 定时任务
 	async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
 		console.log(`Cron trigger started at: ${new Date().toISOString()}`);
 
@@ -34,7 +38,7 @@ export default {
 		// Part 1: Fetch and sync core business metrics (Stats Counts)
 		// ==========================================
 		try {
-			const resp = await fetch("https://ryansu.uk/api/stats/counts");
+			const resp = await fetch("https://***.ryansu.uk/api/stats/counts");
 			if (resp.ok) {
 				const data = await resp.json() as StatsCountsResponse;
 
@@ -42,7 +46,7 @@ export default {
 				batchStatements.push(
 					env.DB.prepare(
 						"INSERT INTO stats_history (books, users, loans, reviews, review_images) VALUES (?, ?, ?, ?, ?)"
-					).bind(data.books, data.users, data.loans, data.reviews, data.review_images),
+					).bind(data.books, data.users, data.loans, data.reviews, data.reviewImage),
 					env.DB.prepare(
 						"DELETE FROM stats_history WHERE timestamp < datetime('now', '-30 days')"
 					)
@@ -58,7 +62,7 @@ export default {
 		// ==========================================
 		// Part 2: Fetch and sync system telemetry metrics (Spring Actuator)
 		// ==========================================
-		const baseUrl = "https://ryansu.uk/actuator/metrics";
+		const baseUrl = "https://***.ryansu.uk/actuator/metrics";
 		const metricsToFetch = [
 			"process.cpu.usage",
 			"jvm.memory.used",
@@ -68,7 +72,7 @@ export default {
 		];
 
 		try {
-			// 1. 并发请求所有 Actuator 指标
+			// 并发请求所有 Actuator 指标
 			const fetchPromises = metricsToFetch.map(async (name) => {
 				try {
 					const response = await fetch(`${baseUrl}/${name}`);
@@ -95,7 +99,7 @@ export default {
 
 			const fetchedResults = await Promise.all(fetchPromises);
 
-			// 2. 将数组结果转换为 Key-Value 字典对象方便宽表字段对齐
+			// 将数组结果转换为 Key-Value 字典对象方便宽表字段对齐
 			const metricsMap: Record<string, number | null> = {};
 			fetchedResults.forEach(item => {
 				metricsMap[item.name] = item.value;
@@ -104,17 +108,17 @@ export default {
 			// 生成当前高精度 UTC 时间（YYYY-MM-DD HH:MM:SS）
 			const currentTimestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
 
-			// 3. 准备宽表的单行 INSERT 语句并压入队列
+			// 准备宽表的单行 INSERT 和清理语句并压入队列
 			const insertMetricsStmt = env.DB.prepare(`
-             INSERT INTO app_metrics2 (
-                timestamp,
-                cpu_usage,
-                jvm_memory_used,
-                http_requests,
-                active_db_connections,
-                uptime
-             ) VALUES (?, ?, ?, ?, ?, ?)
-          `).bind(
+                INSERT INTO app_metrics2 (
+                    timestamp,
+                    cpu_usage,
+                    jvm_memory_used,
+                    http_requests,
+                    active_db_connections,
+                    uptime
+                ) VALUES (?, ?, ?, ?, ?, ?)
+            `).bind(
 				currentTimestamp,
 				metricsMap["process.cpu.usage"],
 				metricsMap["jvm.memory.used"],
