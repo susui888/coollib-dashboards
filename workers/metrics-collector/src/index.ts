@@ -38,7 +38,7 @@ export default {
 		// Part 1: Fetch and sync core business metrics (Stats Counts)
 		// ==========================================
 		try {
-			const resp = await fetch("https://***.ryansu.uk/api/stats/counts");
+			const resp = await fetch("https://coollib.ryansu.uk/api/stats/counts");
 			if (resp.ok) {
 				const data = await resp.json() as StatsCountsResponse;
 
@@ -62,7 +62,7 @@ export default {
 		// ==========================================
 		// Part 2: Fetch and sync system telemetry metrics (Spring Actuator)
 		// ==========================================
-		const baseUrl = "https://***.ryansu.uk/actuator/metrics";
+		const baseUrl = "https://coollib.ryansu.uk/actuator/metrics";
 		const metricsToFetch = [
 			"process.cpu.usage",
 			"jvm.memory.used",
