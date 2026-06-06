@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors'; // 导入 cors 中间件
-import { fetchStatsData, fetchAnalyticsData,fetchGithubMetricsData } from './repository';
+import {fetchStatsData, fetchAnalyticsData, fetchGithubMetricsData, fetchGithubLatestData} from './repository';
 import { Env } from './types';
 
 const app = new Hono<{ Bindings: Env }>();
@@ -41,6 +41,15 @@ app.get('/api/github-metrics', async (c) => {
 		return c.json(data);
 	} catch (e) {
 		return c.json({ error: 'Failed to fetch github metrics' }, 500);
+	}
+});
+
+app.get('/api/github-latest', async (c) => {
+	try {
+		const data = await fetchGithubLatestData(c.env.DB);
+		return c.json(data);
+	} catch (e) {
+		return c.json({ error: 'Failed to fetch github latest data' }, 500);
 	}
 });
 

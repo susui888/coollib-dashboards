@@ -74,21 +74,24 @@ export async function fetchGithubMetricsData(db: D1Database, range: string): Pro
 	const r = range.toLowerCase();
 	let params: string[] = [];
 
-	// 动态构建 WHERE 条件。注意：由于我们在多段 UNION 中共用了这个时间过滤，
-	// 使用统一的命名或位置绑定变量可以确保数据安全性。
+	// 💡 针对不同范围，动态收拢 X 轴的时间分组粒度
+	let dateGroup = "DATE(created_at)";
+	if (r === "90d") {
+		dateGroup = "strftime('%Y-W%W', created_at)"; // 按周聚合
+	} else if (r === "all_time") {
+		dateGroup = "strftime('%Y-%m', created_at)";  // 按月聚合
+	}
+
 	let timeClause = "1=1";
 	if (r !== "all_time") {
 		const days = parseInt(r.replace('d', ''), 10) || 30;
 		timeClause = "created_at >= date('now', ?)";
-		// 由于 UNION ALL 中有 4 个独立的子查询使用了此条件，我们需要绑定 4 次参数
 		params = [`-${days} days`, `-${days} days`, `-${days} days`, `-${days} days`];
 	}
 
-	// 修复了所有 `- >` 的断字错误，并在每个子查询中完美注入了 timeClause 过滤
 	const query = `
-
        SELECT 'commit_activity' AS dataset_type,
-              DATE(created_at)  AS metric_key,
+              ${dateGroup}      AS metric_key,
               SUM(json_array_length(payload->'$.commits')) AS metric_value
        FROM github_app_metrics
        WHERE event_type = 'push' AND ${timeClause === "1=1" ? "1=1" : "created_at >= date('now', ?)"}
@@ -96,32 +99,28 @@ export async function fetchGithubMetricsData(db: D1Database, range: string): Pro
 
        UNION ALL
 
-       -- == CHART 2: CODE GROWTH (基于过滤范围计算的累计文件变更趋势) ==
+       -- == CHART 2: CODE GROWTH (平铺无子查询版：单日/周/月独立变更，绝不累计) ==
        SELECT 'code_growth' AS dataset_type,
-              date          AS metric_key,
-              SUM(daily_files_changed) OVER (ORDER BY date ASC) AS metric_value
-       FROM (
-          SELECT DATE(created_at) AS date,
-                 SUM(
-                    COALESCE(json_array_length(payload->'$.head_commit.added'), 0) +
-                    COALESCE(json_array_length(payload->'$.head_commit.removed'), 0) +
-                    COALESCE(json_array_length(payload->'$.head_commit.modified'), 0)
-                 ) AS daily_files_changed
-          FROM github_app_metrics
-          WHERE event_type = 'push' AND ${timeClause === "1=1" ? "1=1" : "created_at >= date('now', ?)"}
-          GROUP BY date
-       )
+              ${dateGroup}  AS metric_key,
+              SUM(
+				  COALESCE(json_array_length(payload->'$.head_commit.added'), 0) +
+	              COALESCE(json_array_length(payload->'$.head_commit.removed'), 0) +
+	              COALESCE(json_array_length(payload->'$.head_commit.modified'), 0)
+              ) AS metric_value
+       FROM github_app_metrics
+       WHERE event_type = 'push' AND ${timeClause === "1=1" ? "1=1" : "created_at >= date('now', ?)"}
+       GROUP BY metric_key
 
        UNION ALL
 
        -- == CHART 3: REPOSITORY ACTIVITY ==
-
-	   SELECT 'repo_activity' AS dataset_type,
+       SELECT 'repo_activity' AS dataset_type,
               repository_name AS metric_key,
               SUM(json_array_length(payload->'$.commits')) AS metric_value
        FROM github_app_metrics
        WHERE event_type = 'push' AND ${timeClause === "1=1" ? "1=1" : "created_at >= date('now', ?)"}
        GROUP BY metric_key
+
        UNION ALL
 
        -- == CHART 4: LANGUAGE DISTRIBUTION ==
@@ -145,9 +144,69 @@ export async function fetchGithubMetricsData(db: D1Database, range: string): Pro
              OR repository_name LIKE '%resume-website%'
          )
        GROUP BY metric_key
-       ORDER BY dataset_type, metric_key ASC;
+
+       ORDER BY dataset_type ASC, metric_key ASC;
     `;
 
 	const {results} = await db.prepare(query).bind(...params).all<GithubMetricResult>();
 	return results ?? [];
+}
+
+/**
+ * 💡 终极精准版：仅过滤并返回指定 5 个核心仓库的最新一条记录
+ */
+export async function fetchGithubLatestData(db: D1Database): Promise<any[]> {
+	// 定义你需要锁定的 5 个核心仓库名单
+	// 如果你数据库里存的是全称，请将其修改为 ['susui888/coollib-android', 'susui888/coollib-ios', ...]
+	const targetRepos = [
+		'susui888/coollib-android',
+		'susui888/coollib-ios',
+		'susui888/CoolLeaf',
+		'susui888/coollib-dashboards',
+		'susui888/resume-website'
+	];
+
+	// 将数组转化为 SQL IN 语句需要的占位符字符串，例如 "?, ?, ?, ?, ?"
+	const placeholders = targetRepos.map(() => '?').join(', ');
+
+	const sql = `
+        SELECT
+            m.id,
+            m.event_type,
+            m.action,
+            m.repository_name,
+            m.sender_login,
+            m.payload,
+            m.created_at
+        FROM github_app_metrics m
+        INNER JOIN (
+            SELECT MAX(id) as max_id
+            FROM github_app_metrics
+            WHERE repository_name IN (${placeholders}) -- 💡 在聚合前过滤，最大化压榨索引性能
+            GROUP BY repository_name
+        ) latest ON m.id = latest.max_id;
+    `;
+
+	// 将目标仓库数组作为参数安全地绑定到 SQL 中，防止 SQL 注入
+	const { results } = await db.prepare(sql).bind(...targetRepos).all();
+
+	// 映射结果并安全解析 payload
+	return results.map((row: any) => {
+		let parsedPayload = null;
+		try {
+			parsedPayload = row.payload ? JSON.parse(row.payload) : null;
+		} catch (e) {
+			console.error(`[D1 Error] Failed to parse JSON payload for log ID ${row.id}:`, e);
+		}
+
+		return {
+			id: row.id,
+			event_type: row.event_type,
+			action: row.action,
+			repository_name: row.repository_name,
+			sender_login: row.sender_login,
+			created_at: row.created_at,
+			payload: parsedPayload
+		};
+	});
 }
