@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors'; // 导入 cors 中间件
-import { fetchStatsData, fetchAnalyticsData } from './repository';
+import { fetchStatsData, fetchAnalyticsData,fetchGithubMetricsData } from './repository';
 import { Env } from './types';
 
 const app = new Hono<{ Bindings: Env }>();
@@ -30,6 +30,17 @@ app.get('/api/analytics', async (c) => {
 		return c.json(data);
 	} catch (e) {
 		return c.json({ error: 'Failed to fetch analytics' }, 500);
+	}
+});
+
+// GitHub 复合指标接口
+app.get('/api/github-metrics', async (c) => {
+	const range = c.req.query('range') || '30d';
+	try {
+		const data = await fetchGithubMetricsData(c.env.DB, range);
+		return c.json(data);
+	} catch (e) {
+		return c.json({ error: 'Failed to fetch github metrics' }, 500);
 	}
 });
 

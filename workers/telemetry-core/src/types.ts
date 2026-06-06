@@ -18,6 +18,12 @@ export interface MetricQueryResult {
 	raw_time: string;
 }
 
+export interface GithubMetricResult {
+	dataset_type: 'commit_activity' | 'code_growth' | 'repo_activity' | 'language_dist';
+	metric_key: string;
+	metric_value: number;
+}
+
 export interface Env {
 	DB: D1Database;
 }
