@@ -1,0 +1,52 @@
+### Test 1: Post Mobile App Event (Screen View)
+POST https://mobile-metrics-webhook.susui888.workers.dev/api/mobile-telemetry/events
+Content-Type: application/json
+
+{
+  "platform": "Android",
+  "eventType": "SCREEN_VIEW",
+  "eventName": "BookDetailScreen",
+  "appVersion": "0.1.0",
+  "attributes": {
+    "book_id": "978-3-16-148410-0",
+    "source": "Search_Result_List"
+  }
+}
+
+### Test 2: Post Mobile App Event (Custom Action)
+POST https://mobile-metrics-webhook.susui888.workers.dev/api/mobile-telemetry/events
+Content-Type: application/json
+
+{
+  "platform": "iOS",
+  "eventType": "CUSTOM_EVENT",
+  "eventName": "Click_Borrow_Button",
+  "appVersion": "1.0.1",
+  "attributes": {
+    "book_id": "978-3-16-148410-0"
+  }
+}
+
+### Test 3: Post Mobile App Event (Error Event)
+POST https://mobile-metrics-webhook.susui888.workers.dev/api/mobile-telemetry/events
+Content-Type: application/json
+
+{
+  "platform": "Android",
+  "eventType": "ERROR",
+  "eventName": "NetworkTimeoutException",
+  "errorMessage": "java.net.SocketTimeoutException: timeout after 10000ms",
+  "appVersion": "1.0.0"
+}
+
+### Test 4: Post API Performance Metrics
+POST https://mobile-metrics-webhook.susui888.workers.dev/api/mobile-telemetry/metrics
+Content-Type: application/json
+
+{
+  "platform": "iOS",
+  "endpoint": "/api/v1/books/search",
+  "method": "GET",
+  "statusCode": 200,
+  "latencyMs": 145
+}
