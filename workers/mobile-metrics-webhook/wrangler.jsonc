@@ -23,7 +23,24 @@
 			"binding": "DB",
 			"database_name": "coollib"
 		}
-	]
+	],
+	"queues": {
+		"producers": [
+			{
+				"binding": "TELEMETRY_QUEUE",
+				"queue": "telemetry-queue"
+			}
+		],
+		"consumers": [
+			{
+				"queue": "telemetry-queue",
+				"max_batch_size": 10,
+				// Groups up to 10 single events in one consumer invocation
+				"max_batch_timeout": 5
+				// Waits a maximum of 5 seconds before flushing the queue to consumer
+			}
+		]
+	}
 	/**
 	 * Smart Placement
 	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
