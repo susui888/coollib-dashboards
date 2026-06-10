@@ -5,23 +5,34 @@ const telemetryApp = new Hono<{ Bindings: Bindings }>();
 
 /**
  * POST: Ingest Single App Event
+ * 🌟 已兼容 Android (snake_case) 与 iOS (camelCase)
  */
 telemetryApp.post("/events", async (c) => {
     try {
         const body = await c.req.json();
-        if (!body.platform || !body.eventType || !body.eventName) {
+
+        // 🌟 双向提取：优先拿驼峰，没有就拿蛇形
+        const platform = body.platform;
+        const eventType = body.eventType ?? body.event_type;
+        const eventName = body.eventName ?? body.event_name;
+        const errorMessage = body.errorMessage ?? body.error_message ?? null;
+        const appVersion = body.appVersion ?? body.app_version ?? "1.0.0";
+        const attributes = body.attributes ?? null;
+
+        // 强校验：确保三个核心字段只要有一方提供了值即可放行
+        if (!platform || !eventType || !eventName) {
             return c.json({ error: "Missing required fields" }, 400);
         }
 
         const eventPayload = {
             id: body.id || crypto.randomUUID(),
             timestamp: body.timestamp || Date.now(),
-            platform: body.platform,
-            eventType: body.eventType,
-            eventName: body.eventName,
-            errorMessage: body.errorMessage || null,
-            appVersion: body.appVersion || "1.0.0",
-            attributes: body.attributes ? JSON.stringify(body.attributes) : null,
+            platform: platform,
+            eventType: eventType,
+            eventName: eventName,
+            errorMessage: errorMessage,
+            appVersion: appVersion,
+            attributes: attributes ? JSON.stringify(attributes) : null,
         };
 
         // 打上 EVENT 标签，送入统一队列
@@ -38,22 +49,32 @@ telemetryApp.post("/events", async (c) => {
 
 /**
  * POST: Ingest Single API Metric
+ * 🌟 已兼容 Android (snake_case) 与 iOS (camelCase)
  */
 telemetryApp.post("/metrics", async (c) => {
     try {
         const body = await c.req.json();
-        if (!body.platform || !body.endpoint || !body.method || body.statusCode === undefined || body.latencyMs === undefined) {
+
+        // 🌟 双向提取字段
+        const platform = body.platform;
+        const endpoint = body.endpoint;
+        const method = body.method;
+        const statusCode = body.statusCode ?? body.status_code;
+        const latencyMs = body.latencyMs ?? body.latency_ms;
+
+        // 强校验
+        if (!platform || !endpoint || !method || statusCode === undefined || latencyMs === undefined) {
             return c.json({ error: "Missing required fields" }, 400);
         }
 
         const metricPayload = {
             id: body.id || crypto.randomUUID(),
             timestamp: body.timestamp || Date.now(),
-            platform: body.platform,
-            endpoint: body.endpoint,
-            method: body.method,
-            statusCode: body.statusCode,
-            latencyMs: body.latencyMs,
+            platform: platform,
+            endpoint: endpoint,
+            method: method,
+            statusCode: statusCode,
+            latencyMs: latencyMs,
         };
 
         // 打上 METRIC 标签，送入同一个队列
