@@ -5,7 +5,7 @@ import { prepareActuatorTasks } from './tasks/actuator';
 import { preparePerformanceTasks } from './tasks/performance';
 import { prepareFunnelTasks } from './tasks/funnel';
 import { prepareErrorTasks } from './tasks/errors';
-import { prepareScreenVisitTasks } from './tasks/screens'
+import { prepareScreenVisitTasks } from './tasks/screens';
 import { prepareEndpointTasks } from './tasks/endpoints';
 
 const app = new Hono<{ Bindings: Env }>();
@@ -18,20 +18,21 @@ export default {
 	async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
 		console.log(`Cron trigger started at: ${new Date().toISOString()}`);
 
+		// Initialize an atomic execution stack for D1 PreparedStatement batching
 		const batchStatements: any[] = [];
 
-		// 1. 系统与业务同步基础设施任务
+		// Stage 1: Poll system status indicators and core application metadata summaries
 		await prepareStatsTasks(env, batchStatements);
 		await prepareActuatorTasks(env, batchStatements);
 
-		// 2. 遥测核心 5 大维度明细聚合 (ETL Queue)
+		// Stage 2: Execute lookback window ETL algorithms across 5 core telemetry dimensions
 		await preparePerformanceTasks(env, batchStatements);
 		await prepareFunnelTasks(env, batchStatements);
 		await prepareErrorTasks(env, batchStatements);
-		await prepareScreenVisitTasks(env,batchStatements)
+		await prepareScreenVisitTasks(env, batchStatements);
 		await prepareEndpointTasks(env, batchStatements);
 
-		// 3. 最终在单个事务中统一批量原子写入 D1
+		// Stage 3: Flush the prepared transaction sequence down into D1 atomically
 		if (batchStatements.length > 0) {
 			try {
 				await env.DB.batch(batchStatements);

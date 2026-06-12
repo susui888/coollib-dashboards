@@ -19,6 +19,7 @@ Distributed edge telemetry and analytics platform powering the realtime observab
 * business-dash — Business telemetry aggregation dashboard
 * system-dash — Infrastructure observability dashboard
 * business-system-svg — Dynamic SVG telemetry renderer
+* github-metrics-svg — GitHub telemetry SVG generation endpoint
 
 ## Infrastructure Stack
 
@@ -41,7 +42,9 @@ Distributed edge telemetry and analytics platform powering the realtime observab
 
 ```text
 workers/
-├── business-dash/
-├── system-dash/
+├── github-metrics-webhook/
+├── mobile-metrics-webhook/
 ├── business-system-svg/
+├── github-metrics-svg/
+├── telemetry-core/
 └── metrics-collector/
