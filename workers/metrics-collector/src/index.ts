@@ -12,6 +12,21 @@ const app = new Hono<{ Bindings: Env }>();
 
 app.get('/', (c) => c.text('Metrics Collector Worker is running.'));
 
+function prepareRetentionTasks(env: Env, batchStatements: any[]): void {
+	const purgeEventsStmt = env.DB.prepare(`
+        DELETE FROM mobile_telemetry_events
+        WHERE datetime(timestamp / 1000, 'unixepoch') < datetime('now', '-30 days')
+    `);
+
+	const purgeMetricsStmt = env.DB.prepare(`
+        DELETE FROM mobile_telemetry_api_metrics
+        WHERE datetime(timestamp / 1000, 'unixepoch') < datetime('now', '-30 days')
+    `);
+
+	batchStatements.push(purgeEventsStmt, purgeMetricsStmt);
+	console.log("Data retention eviction tasks successfully prepared.");
+}
+
 export default {
 	fetch: app.fetch,
 
@@ -31,6 +46,9 @@ export default {
 		await prepareErrorTasks(env, batchStatements);
 		await prepareScreenVisitTasks(env, batchStatements);
 		await prepareEndpointTasks(env, batchStatements);
+
+		// Stage 2.5: Prune raw pipeline details older than 30 days
+		prepareRetentionTasks(env, batchStatements);
 
 		// Stage 3: Flush the prepared transaction sequence down into D1 atomically
 		if (batchStatements.length > 0) {
