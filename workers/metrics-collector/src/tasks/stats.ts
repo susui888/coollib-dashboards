@@ -3,7 +3,7 @@ import { Env, StatsCountsResponse } from '../types';
 export async function prepareStatsTasks(env: Env, batchStatements: D1PreparedStatement[]): Promise<void> {
 	try {
 		// Step 1: Poll the production CoolLeaf core system endpoint for lifetime business entity aggregates
-		const resp = await fetch("https://coollib.ryansu.uk/api/api/stats/counts");
+		const resp = await fetch("https://coollib.ryansu.uk/api/stats/counts");
 
 		if (resp.ok) {
 			const data = await resp.json() as StatsCountsResponse;

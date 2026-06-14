@@ -15,12 +15,12 @@ app.get('/', (c) => c.text('Metrics Collector Worker is running.'));
 function prepareRetentionTasks(env: Env, batchStatements: any[]): void {
 	const purgeEventsStmt = env.DB.prepare(`
         DELETE FROM mobile_telemetry_events
-        WHERE datetime(timestamp / 1000, 'unixepoch') < datetime('now', '-30 days')
+        WHERE datetime(timestamp / 1000, 'unixepoch') < datetime('now', '-3 days')
     `);
 
 	const purgeMetricsStmt = env.DB.prepare(`
         DELETE FROM mobile_telemetry_api_metrics
-        WHERE datetime(timestamp / 1000, 'unixepoch') < datetime('now', '-30 days')
+        WHERE datetime(timestamp / 1000, 'unixepoch') < datetime('now', '-3 days')
     `);
 
 	batchStatements.push(purgeEventsStmt, purgeMetricsStmt);
@@ -37,19 +37,23 @@ export default {
 		const batchStatements: any[] = [];
 
 		// Stage 1: Poll system status indicators and core application metadata summaries
-		await prepareStatsTasks(env, batchStatements);
-		await prepareActuatorTasks(env, batchStatements);
+		if (event.cron === "*/30 * * * *") {
+			console.log("Running Stage 1 (Stats & Actuator)...");
 
+			await prepareStatsTasks(env, batchStatements);
+			await prepareActuatorTasks(env, batchStatements);
+		} else {
 		// Stage 2: Execute lookback window ETL algorithms across 5 core telemetry dimensions
-		await preparePerformanceTasks(env, batchStatements);
-		await prepareFunnelTasks(env, batchStatements);
-		await prepareErrorTasks(env, batchStatements);
-		await prepareScreenVisitTasks(env, batchStatements);
-		await prepareEndpointTasks(env, batchStatements);
+			console.log("Running Full Pipeline (Daily)...");
+			await preparePerformanceTasks(env, batchStatements);
+			await prepareFunnelTasks(env, batchStatements);
+			await prepareErrorTasks(env, batchStatements);
+			await prepareScreenVisitTasks(env, batchStatements);
+			await prepareEndpointTasks(env, batchStatements);
 
-		// Stage 2.5: Prune raw pipeline details older than 30 days
-		prepareRetentionTasks(env, batchStatements);
-
+			// Stage 2.5: Prune raw pipeline details older than 30 days
+			prepareRetentionTasks(env, batchStatements);
+		}
 		// Stage 3: Flush the prepared transaction sequence down into D1 atomically
 		if (batchStatements.length > 0) {
 			try {

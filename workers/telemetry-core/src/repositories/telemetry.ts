@@ -76,7 +76,7 @@ export async function fetchScreenVisitData(db: any, range: string): Promise<Scre
 	const days = parseInt(range, 10) || 7;
 	const { results } = await db.prepare(`
 		SELECT screen_name, os_platform, SUM(visit_count) as total_views
-		FROM summary_screen_visits WHERE DATE(snapshot_date) >= DATE('now', ? || ' days') GROUP BY screen_name, os_platform ORDER BY total_views DESC LIMIT 5
+		FROM summary_screen_visits WHERE DATE(snapshot_date) >= DATE('now', ? || ' days') GROUP BY screen_name, os_platform ORDER BY total_views DESC LIMIT 12
 	`).bind(`-${days}`).all();
 	return results as unknown as ScreenVisitSummary[];
 }
@@ -85,7 +85,7 @@ export async function fetchSlowEndpointsData(db: any, range: string): Promise<Sl
 	const days = parseInt(range, 10) || 7;
 	const { results } = await db.prepare(`
 		SELECT endpoint, method, ROUND(AVG(avg_latency_ms), 2) as latency_ms, SUM(call_count) as total_calls
-		FROM summary_api_endpoints WHERE DATE(snapshot_date) >= DATE('now', ? || ' days') GROUP BY endpoint, method ORDER BY latency_ms DESC LIMIT 10
+		FROM summary_api_endpoints WHERE DATE(snapshot_date) >= DATE('now', ? || ' days') GROUP BY endpoint, method ORDER BY latency_ms DESC LIMIT 6
 	`).bind(`-${days}`).all();
 	return results as unknown as SlowEndpointSummary[];
 }
