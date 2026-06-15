@@ -26,7 +26,7 @@ export async function fetchGithubMetricsData(db: any, range: string): Promise<Gi
        FROM github_app_metrics WHERE event_type = 'push' AND ${timeClause === "1=1" ? "1=1" : "created_at >= date('now', ?)"} GROUP BY metric_key
        UNION ALL
        SELECT 'repo_activity' AS dataset_type, repository_name AS metric_key, SUM(json_array_length(payload->'$.commits')) AS metric_value
-       FROM github_app_metrics WHERE event_type = 'push' AND ${timeClause === "1=1" ? "1=1" : "created_at >= date('now', ?)"} GROUP BY metric_key
+       FROM github_app_metrics WHERE event_type = 'push' AND (payload->>'$.repository.private') = 0 AND ${timeClause === "1=1" ? "1=1" : "created_at >= date('now', ?)"} GROUP BY metric_key
        UNION ALL
        SELECT 'language_dist' AS dataset_type, CASE WHEN repository_name LIKE '%CoolLeaf%' OR repository_name LIKE '%coollib-android%' THEN 'Kotlin' WHEN repository_name LIKE '%coollib-ios%' THEN 'Swift' WHEN repository_name LIKE '%coollib-dashboards%' THEN 'TypeScript' WHEN repository_name LIKE '%resume-website%' THEN 'Astro/TS' ELSE 'Other' END AS metric_key, SUM(json_array_length(payload->'$.commits')) AS metric_value
        FROM github_app_metrics WHERE event_type = 'push' AND ${timeClause === "1=1" ? "1=1" : "created_at >= date('now', ?)"} AND (repository_name LIKE '%CoolLeaf%' OR repository_name LIKE '%coollib-android%' OR repository_name LIKE '%coollib-ios%' OR repository_name LIKE '%coollib-dashboards%' OR repository_name LIKE '%resume-website%') GROUP BY metric_key
