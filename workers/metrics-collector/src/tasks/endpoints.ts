@@ -36,7 +36,7 @@ export async function prepareEndpointTasks(env: Env, batchStatements: any[]): Pr
 
 		for (const row of results) {
 			const date = row.snapshot_date as string;
-			const originalEndpoint = row.endpoint as string;
+			const originalEndpoint = (row.endpoint as string).trim();
 			const method = row.method as string;
 			const latency = row.latency_ms as number;
 
@@ -46,7 +46,8 @@ export async function prepareEndpointTasks(env: Env, batchStatements: any[]): Pr
 
 			// Pass 2: Detect and flatten dynamic UGC/static assets (e.g., UUID-based filenames) into a :filename placeholder
 			// Supports common asset formats (.webp, .jpg, etc.) with case-insensitivity (/i)
-			normalizedEndpoint = normalizedEndpoint.replace(/\/[a-zA-Z0-9_-]+\.(webp|jpg|jpeg|png|gif)$/i, '/:filename');
+			//normalizedEndpoint = normalizedEndpoint.replace(/\/[a-zA-Z0-9_-]+\.(webp|jpg|jpeg|png|gif)$/i, '/:filename');
+			normalizedEndpoint = normalizedEndpoint.replace(/\/[^/]+\.(webp|jpg|jpeg|png|gif)$/i, '/:filename');
 
 			// Generate unique compound cache identifier for aggregation
 			const aggKey = `${date}|${normalizedEndpoint}|${method}`;
