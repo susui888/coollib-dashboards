@@ -85,7 +85,7 @@ export async function fetchSlowEndpointsData(db: any, range: string): Promise<Sl
 	const days = parseInt(range, 10) || 7;
 	const { results } = await db.prepare(`
 		SELECT endpoint, method, ROUND(AVG(avg_latency_ms), 2) as latency_ms, SUM(call_count) as total_calls
-		FROM summary_api_endpoints WHERE DATE(snapshot_date) >= DATE('now', ? || ' days') GROUP BY endpoint, method ORDER BY latency_ms DESC LIMIT 6
+		FROM summary_api_endpoints WHERE DATE(snapshot_date) >= DATE('now', ? || ' days') GROUP BY endpoint, method ORDER BY latency_ms DESC LIMIT 8
 	`).bind(`-${days}`).all();
 	return results as unknown as SlowEndpointSummary[];
 }
