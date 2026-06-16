@@ -7,6 +7,7 @@ import { prepareFunnelTasks } from './tasks/funnel';
 import { prepareErrorTasks } from './tasks/errors';
 import { prepareScreenVisitTasks } from './tasks/screens';
 import { prepareEndpointTasks } from './tasks/endpoints';
+import { checkSpringHealth } from './tasks/healthCheck';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -31,30 +32,38 @@ export default {
 	fetch: app.fetch,
 
 	async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
-		console.log(`Cron trigger started at: ${new Date().toISOString()}`);
+		console.log(`Cron trigger [${event.cron}] started at: ${new Date().toISOString()}`);
 
 		// Initialize an atomic execution stack for D1 PreparedStatement batching
 		const batchStatements: any[] = [];
 
-		// Stage 1: Poll system status indicators and core application metadata summaries
-		if (event.cron === "*/30 * * * *") {
-			console.log("Running Stage 1 (Stats & Actuator)...");
+		switch (event.cron) {
 
-			await prepareStatsTasks(env, batchStatements);
-			await prepareActuatorTasks(env, batchStatements);
-		} else {
-		// Stage 2: Execute lookback window ETL algorithms across 5 core telemetry dimensions
-			console.log("Running Full Pipeline (Daily)...");
-			await preparePerformanceTasks(env, batchStatements);
-			await prepareFunnelTasks(env, batchStatements);
-			await prepareErrorTasks(env, batchStatements);
-			await prepareScreenVisitTasks(env, batchStatements);
-			await prepareEndpointTasks(env, batchStatements);
+			case "*/2 * * * *":
+				console.log("Running 2-Min Live Critical Health Check...");
 
-			// Stage 2.5: Prune raw pipeline details older than 30 days
-			prepareRetentionTasks(env, batchStatements);
+				ctx.waitUntil(checkSpringHealth(env, ctx));
+				break;
+
+			case "*/30 * * * *":
+				console.log("Running 30-Min Metrics Extraction (Stage 1)...");
+				await prepareStatsTasks(env, batchStatements);
+				await prepareActuatorTasks(env, batchStatements);
+				break;
+
+			default:
+
+				console.log("Running Full Pipeline ETL (Daily Mode)...");
+				await preparePerformanceTasks(env, batchStatements);
+				await prepareFunnelTasks(env, batchStatements);
+				await prepareErrorTasks(env, batchStatements);
+				await prepareScreenVisitTasks(env, batchStatements);
+				await prepareEndpointTasks(env, batchStatements);
+				prepareRetentionTasks(env, batchStatements);
+				break;
 		}
-		// Stage 3: Flush the prepared transaction sequence down into D1 atomically
+
+		// 统一为 Stage 1 和 Daily 管道刷新 D1 事务
 		if (batchStatements.length > 0) {
 			try {
 				await env.DB.batch(batchStatements);
@@ -63,7 +72,7 @@ export default {
 				console.error("❌ D1 Batch execution failed:", batchErr.message);
 			}
 		} else {
-			console.log("No statements prepared. Batch skipped.");
+			console.log("No batch statements required for this trigger.");
 		}
 	}
 };

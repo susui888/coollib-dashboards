@@ -22,7 +22,7 @@ app.use(
 app.route("/api/mobile-telemetry", telemetryApp);
 
 // This maps to `/api/mobile-telemetry/dashboard` and `/api/mobile-telemetry/stream`
-app.route("/api/mobile-telemetry", dashboardApp);
+//app.route("/api/mobile-telemetry", dashboardApp);
 
 
 export default {

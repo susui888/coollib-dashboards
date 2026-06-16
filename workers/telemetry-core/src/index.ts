@@ -11,6 +11,7 @@ import {
 	fetchScreenVisitData,
 	fetchSlowEndpointsData
 } from './repositories/telemetry';
+import { fetchLatestIncidents } from './repositories/incident';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -92,4 +93,12 @@ app.get('/api/portfolio/slow-endpoints', async (c) => {
 	}
 });
 
+app.get('/api/portfolio/incidents', async (c) => {
+	try {
+		const data = await fetchLatestIncidents(c.env.DB);
+		return c.json({ success: true, data });
+	} catch (e: any) {
+		return c.json({ success: false, error: e.message }, 500);
+	}
+});
 export default app;

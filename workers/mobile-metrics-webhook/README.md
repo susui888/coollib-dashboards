@@ -111,4 +111,51 @@ ON mobile_telemetry_api_metrics(timestamp);
 -- Speeds up performance bottleneck analysis for individual endpoints
 CREATE INDEX IF NOT EXISTS idx_mobile_telemetry_api_endpoint 
 ON mobile_telemetry_api_metrics(endpoint);
+
+
+-- =====================================================================
+-- TABLE 3: incidents
+-- DESCRIPTION: Tracks the lifecycle of critical system anomalies across the 
+--              entire ecosystem (Infra, Mobile Clients, and GitHub CI/CD).
+-- USED FOR: Portfolio Status Page (Green/Red banners) and real-time PagerDuty
+--           alerting triggers.
+-- =====================================================================
+
+CREATE TABLE IF NOT EXISTS incidents (
+    -- Unique token identifying each distinct incident (typically a server-side UUID)
+    id TEXT PRIMARY KEY,
+
+    -- The high-level pipeline domain throwing the alert ('INFRA', 'MOBILE', or 'GITHUB')
+    source TEXT NOT NULL,
+
+    -- The exact subsystem/component affected: e.g., 'spring-boot', 'cloudflare-d1', 'coollib-ios', 'github-ci'
+    component TEXT NOT NULL,
+
+    -- Severity classification for filtering and escalation ('WARNING', 'CRITICAL', 'FATAL')
+    level TEXT NOT NULL,
+
+    -- A concise, human-readable summary of the issue: e.g., "Spring Boot Server Unreachable"
+    title TEXT NOT NULL,
+
+    -- Detailed context or system exception output (e.g., StackTraces, raw error payloads, or GitHub run URLs)
+    message TEXT,
+
+    -- Current lifecycle state of the incident: 'active' (unresolved) or 'resolved'
+    status TEXT NOT NULL DEFAULT 'active',
+
+    -- Unix timestamp or formatted text documenting when the incident was created
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    -- Documenting when the incident was resolved and marked green again
+    resolved_at DATETIME
+);
+
+-- INDEXES FOR TABLE 3:
+-- Optimizes rapid status queries on your portfolio website to check for any active incident
+CREATE INDEX IF NOT EXISTS idx_incidents_status
+    ON incidents(status);
+
+-- Ensures historical timeline rendering displays the most recent incidents first
+CREATE INDEX IF NOT EXISTS idx_incidents_created
+    ON incidents(created_at DESC);
 ```

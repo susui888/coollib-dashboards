@@ -1,4 +1,5 @@
 export interface Env {
+	PAGERDUTY_INTEGRATION_KEY: string;
 	DB: D1Database;
 }
 

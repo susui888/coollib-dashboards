@@ -5,7 +5,7 @@ import { Bindings } from "../types";
 const dashboardApp = new Hono<{ Bindings: Bindings }>();
 
 /**
- * GET: Fetch Dashboard Aggregated Statistics
+ * GET: Fetch Dashboard Aggregated Statistics, not in use
  */
 dashboardApp.get("/dashboard", async (c) => {
     try {
@@ -65,7 +65,7 @@ dashboardApp.get("/dashboard", async (c) => {
 });
 
 /**
- * GET: Fetch Live Event Stream
+ * GET: Fetch Live Event Stream, not in use
  */
 dashboardApp.get("/stream", async (c) => {
     try {
