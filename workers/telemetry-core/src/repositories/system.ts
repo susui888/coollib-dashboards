@@ -10,7 +10,7 @@ export async function fetchAnalyticsData(db: any, range: string): Promise<Metric
               ROUND(MAX(cpu_usage) * 100, 1)               as cpu,
               ROUND(MAX(jvm_memory_used) / 1024 / 1024, 0) as memory,
               MAX(http_requests)                           as requests,
-              MAX(active_db_connections)                   as db_conn,
+              MAX(active_db_connections) + 1               as db_conn,
               ROUND(MAX(uptime) / 3600, 1)                 as uptime,
               MAX(timestamp)                               as raw_time
        FROM app_metrics2
