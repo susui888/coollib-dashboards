@@ -1,14 +1,14 @@
 import { Hono } from 'hono';
 import { Env } from './types';
-import { prepareStatsTasks } from './tasks/stats';
-import { prepareActuatorTasks } from './tasks/actuator';
-import { preparePerformanceTasks } from './tasks/performance';
-import { prepareFunnelTasks } from './tasks/funnel';
-import { prepareErrorTasks } from './tasks/errors';
-import { prepareScreenVisitTasks } from './tasks/screens';
-import { prepareEndpointTasks } from './tasks/endpoints';
-import { checkSpringHealth } from './tasks/healthCheck';
-import { executeBillingSentinelPoll } from './tasks/billCheck';
+import { prepareStatsTasks } from './system-tasks/stats';
+import { prepareActuatorTasks } from './system-tasks/actuator';
+import { preparePerformanceTasks } from './mobile-tasks/performance';
+import { prepareFunnelTasks } from './mobile-tasks/funnel';
+import { prepareErrorTasks } from './mobile-tasks/errors';
+import { prepareScreenVisitTasks } from './mobile-tasks/screens';
+import { prepareEndpointTasks } from './mobile-tasks/endpoints';
+import { checkSpringHealth } from './alerts/healthCheck';
+import { executeBillingSentinelPoll } from './alerts/billCheck';
 
 const app = new Hono<{ Bindings: Env }>();
 

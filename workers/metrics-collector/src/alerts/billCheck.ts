@@ -101,17 +101,31 @@ export async function executeBillingSentinelPoll(env: Env, batchStatements: any[
 			batchStatements.push(incidentStmt);
 
 			// Pass the pre-formatted string to guarantee uniform alert visualization
-			routeToPagerDuty(env.PAGERDUTY_INTEGRATION_KEY, alertLevel, formattedRead);
+			await routeToPagerDuty(env.PAGERDUTY_INTEGRATION_KEY, alertLevel, formattedRead, "trigger");
 		} else {
-			console.log(`[STATUS NOMINAL] D1 query consumption profiles remain safely below the 50K boundary marker. Current: ${formattedRead}`);
-		}
+			console.log(`[STATUS NOMINAL] D1 telemetry recovered nominal state (${formattedRead}). Flushing active incidents.`);
+
+			// AUTO-RESOLVE: Update active telemetry alerts in D1 database to make dashboard green
+			const resolveStmt = env.DB.prepare(`
+             UPDATE incidents
+             SET status = 'resolved', message = ?
+             WHERE component = 'cloudflare-billing' AND status = 'active';
+          `).bind(`Billing telemetry recovered nominal status. Current rolling usage: ${formattedRead}`);
+
+			batchStatements.push(resolveStmt);}
+
+		await Promise.all([
+			routeToPagerDuty(env.PAGERDUTY_INTEGRATION_KEY, "WARNING", formattedRead, "resolve"),
+			routeToPagerDuty(env.PAGERDUTY_INTEGRATION_KEY, "CRITICAL", formattedRead, "resolve"),
+			routeToPagerDuty(env.PAGERDUTY_INTEGRATION_KEY, "FATAL", formattedRead, "resolve")
+		]);
 
 	} catch (err: any) {
 		console.error(`[SENTINEL EXCEPTION] Run loop aborted: ${err.message}`);
 	}
 }
 
-async function routeToPagerDuty(integrationKey: string, severityLevel: string, formattedRead: string): Promise<void> {
+async function routeToPagerDuty(integrationKey: string, severityLevel: string, formattedRead: string, action: "trigger" | "resolve"): Promise<void> {
 	if (!integrationKey) return;
 	const pdSeverity = severityLevel === "WARNING" ? "warning" : severityLevel === "CRITICAL" ? "error" : "critical";
 	const dedupKey = `billing-quota-breach-${severityLevel.toLowerCase()}`;
@@ -122,11 +136,12 @@ async function routeToPagerDuty(integrationKey: string, severityLevel: string, f
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
 				routing_key: integrationKey,
-				event_action: "trigger",
+				event_action: action,
 				dedup_key: dedupKey,
 				payload: {
-					// 💡 VISUAL OPTIMIZATION: Display readable metric scale directly in PagerDuty notifications
-					summary: `[${severityLevel}] D1 Overconsumption: ${formattedRead} Rows Intercepted`,
+					summary: action === "trigger"
+						? `[${severityLevel}] D1 Overconsumption: ${formattedRead} Rows Intercepted`
+						: `[RESOLVED] D1 Telemetry Recovered: ${formattedRead} Rows`,
 					source: "cloudflare-graphql-sentinel",
 					severity: pdSeverity,
 					custom_details: {
