@@ -1,6 +1,9 @@
 export interface Env {
 	PAGERDUTY_INTEGRATION_KEY: string;
 	DB: D1Database;
+	CLOUDFLARE_ACCOUNT_ID: string;
+	CLOUDFLARE_D1_DATABASE_ID: string;
+	CLOUDFLARE_API_TOKEN: string;
 }
 
 export interface StatsCountsResponse {

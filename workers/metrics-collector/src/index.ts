@@ -8,6 +8,7 @@ import { prepareErrorTasks } from './tasks/errors';
 import { prepareScreenVisitTasks } from './tasks/screens';
 import { prepareEndpointTasks } from './tasks/endpoints';
 import { checkSpringHealth } from './tasks/healthCheck';
+import { executeBillingSentinelPoll } from './tasks/billCheck';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -41,14 +42,16 @@ export default {
 
 			case "*/2 * * * *":
 				console.log("Running 2-Min Live Critical Health Check...");
-
 				ctx.waitUntil(checkSpringHealth(env, ctx));
+
 				break;
 
 			case "*/30 * * * *":
 				console.log("Running 30-Min Metrics Extraction (Stage 1)...");
 				await prepareStatsTasks(env, batchStatements);
 				await prepareActuatorTasks(env, batchStatements);
+
+				await executeBillingSentinelPoll(env, batchStatements);
 				break;
 
 			default:
