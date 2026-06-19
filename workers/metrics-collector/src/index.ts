@@ -9,6 +9,7 @@ import { prepareScreenVisitTasks } from './mobile-tasks/screens';
 import { prepareEndpointTasks } from './mobile-tasks/endpoints';
 import { checkSpringHealth } from './alerts/healthCheck';
 import { executeBillingSentinelPoll } from './alerts/billCheck';
+import {alertForTestIncident} from "./alerts/alertForTestIncident";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -44,6 +45,7 @@ export default {
 				console.log("Running 2-Min Live Critical Health Check...");
 				ctx.waitUntil(checkSpringHealth(env, ctx));
 
+				ctx.waitUntil(alertForTestIncident(env, ctx));
 				break;
 
 			case "*/30 * * * *":
