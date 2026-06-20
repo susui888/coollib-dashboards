@@ -19,17 +19,12 @@ export function renderMonitorSvg(scaleData: ScaleMetrics | null, runtimeData: Ru
 	const heapVal = metricsMap['jvm.memory.used'] != null ? Math.floor(metricsMap['jvm.memory.used'] / 1024 / 1024) + "M" : "314M";
 	const requestsVal = metricsMap['spring.security.http.secured.requests'] != null ? Math.floor(metricsMap['spring.security.http.secured.requests']).toLocaleString() : "0";
 
-	// Always fixed to 1/20 per instruction
-	const dbPoolVal = "1/20";
-
 	// Compute operational diagnostics
 	const utilization = data.books > 0 ? ((data.loans / data.books) * 100).toFixed(1) + "%" : "0.0%";
 	const mediaDensity = data.reviews > 0 ? (data.review_images / data.reviews).toFixed(2) : "0.00";
 	const engagement = data.users > 0 ? (data.reviews / data.users).toFixed(2) : "0.00";
 
-	const lastUpdated = new Date().toISOString().replace('T', ' ').substring(0, 19);
-
-	return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 580" width="100%" height="100%">
+	return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 490" width="100%" height="100%">
   <defs>
     <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#0d1117" />
@@ -44,10 +39,6 @@ export function renderMonitorSvg(scaleData: ScaleMetrics | null, runtimeData: Ru
     <linearGradient id="spark-green-grad" x1="0%" y1="0%" x2="0%" y2="100%">
       <stop offset="0%" stop-color="#3fb950" stop-opacity="0.12" />
       <stop offset="100%" stop-color="#3fb950" stop-opacity="0.0" />
-    </linearGradient>
-    <linearGradient id="spark-blue-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#58a6ff" stop-opacity="0.15" />
-      <stop offset="100%" stop-color="#58a6ff" stop-opacity="0.0" />
     </linearGradient>
     <linearGradient id="spark-purple-grad" x1="0%" y1="0%" x2="0%" y2="100%">
       <stop offset="0%" stop-color="#bc8cff" stop-opacity="0.12" />
@@ -84,28 +75,17 @@ export function renderMonitorSvg(scaleData: ScaleMetrics | null, runtimeData: Ru
 
   <g transform="translate(30, 170)">
     <rect width="360" height="75" class="card-bg" />
-    <path d="M 180 65 Q 210 35, 240 50 T 300 40 T 340 30 L 340 70 L 180 70 Z" fill="url(#spark-blue-grad)" />
-    <path d="M 180 65 Q 210 35, 240 50 T 300 40 T 340 30" fill="none" stroke="#58a6ff" stroke-width="4" stroke-linecap="round" opacity="0.25" />
-    <path d="M 180 65 Q 210 35, 240 50 T 300 40 T 340 30" fill="none" stroke="#58a6ff" stroke-width="1.5" stroke-linecap="round" opacity="0.9" />
-    <circle cx="340" cy="30" r="3" fill="#58a6ff" />
-
-    <text x="20" y="30" class="metric-label">Total Users</text>
-    <text x="20" y="58" class="metric-value">${Math.floor(data.users).toLocaleString()} <tspan class="metric-unit">registered nodes</tspan></text>
-  </g>
-
-  <g transform="translate(30, 260)">
-    <rect width="360" height="75" class="card-bg" />
     <text x="20" y="30" class="metric-label">Inventory Utilization</text>
     <text x="20" y="58" class="metric-value-purple">${utilization} <tspan class="metric-unit" fill="#8b949e">loaned ratio</tspan></text>
   </g>
 
-  <g transform="translate(30, 350)">
+  <g transform="translate(30, 260)">
     <rect width="360" height="75" class="card-bg" />
     <text x="20" y="30" class="metric-label">Media Enrichment</text>
     <text x="20" y="58" class="metric-value">${mediaDensity} <tspan class="metric-unit">images per review</tspan></text>
   </g>
 
-  <g transform="translate(30, 440)">
+  <g transform="translate(30, 350)">
     <rect width="360" height="75" class="card-bg" />
     <path d="M 180 48 Q 200 51, 220 47 T 260 50 T 300 46 T 340 48 L 340 70 L 180 70 Z" fill="url(#spark-purple-grad)" />
     <path d="M 180 48 Q 200 51, 220 47 T 260 50 T 300 46 T 340 48" fill="none" stroke="#bc8cff" stroke-width="4" stroke-linecap="round" opacity="0.15" />
@@ -145,16 +125,9 @@ export function renderMonitorSvg(scaleData: ScaleMetrics | null, runtimeData: Ru
     <text x="20" y="58" class="metric-value">${requestsVal} <tspan class="metric-unit">http operations</tspan></text>
   </g>
 
-  <g transform="translate(410, 440)">
-    <rect width="360" height="75" class="card-bg" />
-    <text x="20" y="30" class="metric-label">DB Pool Active</text>
-    <text x="20" y="58" class="metric-value">${dbPoolVal} <tspan class="metric-unit">hikari connections</tspan></text>
-  </g>
-
-  <g transform="translate(30, 545)">
+  <g transform="translate(30, 455)">
     <circle cx="6" cy="5" r="6" fill="#3fb950" opacity="0.25" />
     <circle cx="6" cy="5" r="3.5" fill="#3fb950" />
-
     <text x="18" y="10" class="footer-text" font-weight="500">GITHUB LIVE TELEMETRY ACTIVE</text>
   </g>
 

@@ -39,6 +39,9 @@ export function renderIncidentSvg(metrics: IncidentSnapshotMetrics): string {
       .log-text { font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 12px; fill: #c9d1d9; }
       .log-time { font-family: "SFMono-Regular", Consolas, monospace; font-size: 11px; fill: #8b949e; }
       .footer-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 11px; fill: #8b949e; }
+
+      /* PagerDuty Badge Typography */
+      .pd-badge-text { font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 10px; font-weight: 700; fill: #062f13; }
     </style>
   </defs>
 
@@ -47,7 +50,13 @@ export function renderIncidentSvg(metrics: IncidentSnapshotMetrics): string {
   <g transform="translate(30, 40)">
     <circle cx="6" cy="-5" r="5" fill="${statusColor}" />
     <text x="20" y="0" class="title">Live Alert Monitor</text>
-    <text x="480" y="0" class="footer-text" text-anchor="end">On-Call: ${metrics.on_call_primary}</text>
+
+    <!-- PagerDuty Integration Tag -->
+    <g transform="translate(395, -14)">
+      <rect width="85" height="18" rx="4" fill="#36b37e" />
+      <text x="42.5" y="12" class="pd-badge-text" text-anchor="middle">PAGERDUTY</text>
+    </g>
+
     <rect x="0" y="12" width="480" height="1" fill="url(#accent-grad)" opacity="0.4" />
   </g>
 
@@ -69,40 +78,46 @@ export function renderIncidentSvg(metrics: IncidentSnapshotMetrics): string {
     <text x="15" y="48" class="val-blue">${metrics.avg_mttr}</text>
   </g>
 
-  <text x="30" y="170" class="stream-header">INCIDENT TELEMETRY STREAM (LAST 3 EVENTS)</text>
+  <text x="30" y="168" class="stream-header">INCIDENT TELEMETRY STREAM (LAST 3 EVENTS)</text>
 
-  <g transform="translate(30, 175)">
+  <g transform="translate(30, 182)">
     ${metrics.recent_logs[0] ? `
-        <circle cx="5" cy="12" r="3" fill="${metrics.recent_logs[0].status === 'active' ? '#FF6B6B' : '#2EA44F'}"/>
-        <text x="18" y="16" class="log-text">${metrics.recent_logs[0].title}</text>
-        <text x="480" y="16" class="log-time" text-anchor="end">[${metrics.recent_logs[0].created_at}]</text>
-    ` : `<text x="5" y="16" class="log-text" fill="#8B949E">No historical incidents tracked in cluster.</text>`}
+        <circle cx="5" cy="8" r="3" fill="${metrics.recent_logs[0].status === 'active' ? '#FF6B6B' : '#2EA44F'}"/>
+        <text x="18" y="12" class="log-text">${metrics.recent_logs[0].title}</text>
+        <text x="480" y="12" class="log-time" text-anchor="end">[${metrics.recent_logs[0].created_at}]</text>
+        <line x1="0" y1="23" x2="480" y2="23" stroke="#21262D" stroke-width="1" stroke-dasharray="4,4"/>
+    ` : `<text x="5" y="12" class="log-text" fill="#8B949E">No historical incidents tracked in cluster.</text>`}
   </g>
 
-  <g transform="translate(30, 197)">
+  <g transform="translate(30, 208)">
     ${metrics.recent_logs[1] ? `
-        <circle cx="5" cy="12" r="3" fill="${metrics.recent_logs[1].status === 'active' ? '#FF6B6B' : '#2EA44F'}"/>
-        <text x="18" y="16" class="log-text">${metrics.recent_logs[1].title}</text>
-        <text x="480" y="16" class="log-time" text-anchor="end">[${metrics.recent_logs[1].created_at}]</text>
+        <circle cx="5" cy="8" r="3" fill="${metrics.recent_logs[1].status === 'active' ? '#FF6B6B' : '#2EA44F'}"/>
+        <text x="18" y="12" class="log-text">${metrics.recent_logs[1].title}</text>
+        <text x="480" y="12" class="log-time" text-anchor="end">[${metrics.recent_logs[1].created_at}]</text>
+        <line x1="0" y1="23" x2="480" y2="23" stroke="#21262D" stroke-width="1" stroke-dasharray="4,4"/>
     ` : ''}
   </g>
 
-  <g transform="translate(30, 219)">
+  <g transform="translate(30, 234)">
     ${metrics.recent_logs[2] ? `
-        <circle cx="5" cy="12" r="3" fill="${metrics.recent_logs[2].status === 'active' ? '#FF6B6B' : '#2EA44F'}"/>
-        <text x="18" y="16" class="log-text">${metrics.recent_logs[2].title}</text>
-        <text x="480" y="16" class="log-time" text-anchor="end">[${metrics.recent_logs[2].created_at}]</text>
+        <circle cx="5" cy="8" r="3" fill="${metrics.recent_logs[2].status === 'active' ? '#FF6B6B' : '#2EA44F'}"/>
+        <text x="18" y="12" class="log-text">${metrics.recent_logs[2].title}</text>
+        <text x="480" y="12" class="log-time" text-anchor="end">[${metrics.recent_logs[2].created_at}]</text>
+        <line x1="0" y1="23" x2="480" y2="23" stroke="#21262D" stroke-width="1" stroke-dasharray="4,4"/>
     ` : ''}
   </g>
 
-  <g transform="translate(30, 265)">
-    <line x1="0" y1="0" x2="480" y2="0" stroke="#21262D" stroke-width="1"/>
+  <g transform="translate(30, 268)">
+    <line x1="0" y1="0" x2="480" y2="0" stroke="#30363D" stroke-width="1"/>
 
-    <circle cx="6" cy="18" r="5" fill="${statusColor}" opacity="0.25" />
-    <circle cx="6" cy="18" r="3" fill="${statusColor}" />
+    <circle cx="6" cy="15" r="5" fill="${statusColor}" opacity="0.25" />
+    <circle cx="6" cy="15" r="3.5" fill="${statusColor}" />
 
-    <text x="18" y="21" class="footer-text" font-weight="600" fill="${statusColor}" letter-spacing="0.5">${statusText}</text>
+    <text x="18" y="18" class="footer-text" font-weight="600" fill="${statusColor}" letter-spacing="0.5">${statusText}</text>
+
+    <!-- Relocated On-Call tracking to the bottom for balanced spatial distribution -->
+    <text x="480" y="18" class="footer-text" text-anchor="end">On-Call Routing: ${metrics.on_call_primary}</text>
   </g>
 
-</svg>`;
+</svg>`.trim();
 }
