@@ -55,7 +55,7 @@ export function renderMonitorSvg(scaleData: ScaleMetrics | null, runtimeData: Ru
       .metric-value-purple { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 20px; font-weight: 600; fill: #bc8cff; }
 
       .metric-unit { font-size: 12px; font-weight: 400; fill: #8b949e; }
-      .footer-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 16px; fill: #8b949e; }
+      .footer-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; fill: #8b949e; }
     </style>
   </defs>
 
@@ -128,7 +128,8 @@ export function renderMonitorSvg(scaleData: ScaleMetrics | null, runtimeData: Ru
   <g transform="translate(30, 455)">
     <circle cx="6" cy="5" r="6" fill="#3fb950" opacity="0.25" />
     <circle cx="6" cy="5" r="3.5" fill="#3fb950" />
-    <text x="18" y="10" class="footer-text" font-weight="500">GITHUB LIVE TELEMETRY ACTIVE</text>
+    <text x="18" y="10" class="footer-text" font-weight="600" fill="#3fb950">SPRING ACTUATOR PROBE ACTIVE</text>
+    <text x="740" y="10" class="footer-text" text-anchor="end" fill="#8b949e" font-size="12px" font-family="SFMono-Regular, Consolas, monospace">Ingress: Cloudflare Workers Edge Gateway</text>
   </g>
 
 </svg>`.trim();

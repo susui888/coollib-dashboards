@@ -24,7 +24,7 @@ export function renderIncidentSvg(metrics: IncidentSnapshotMetrics): string {
 
     <style>
       .title { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 600; fill: #c9d1d9; }
-      .card-bg { fill: #161b22; stroke: #30363d; stroke-width: 1; rx: 6px; }
+      .card-bg { fill: #21262d; stroke: #30363d; stroke-width: 1; rx: 6px; }
       .metric-label { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 12px; font-weight: 500; fill: #8b949e; }
 
       /* SRE Core Typography Matrix */
