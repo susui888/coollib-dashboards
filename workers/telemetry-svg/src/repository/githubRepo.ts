@@ -1,6 +1,6 @@
-import { D1PushRow, TotalStats } from "./types";
+import { D1PushRow, TotalStats } from "../types";
 
-export class MetricsRepository {
+export class GithubRepository {
 	private db: D1Database;
 
 	constructor(db: D1Database) {

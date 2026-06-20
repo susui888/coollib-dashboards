@@ -1,6 +1,9 @@
-import { D1PushRow, TotalStats } from "./types";
+// src/views/githubSvg.ts
+// Code snippet is entirely in English as requested
 
-export class MetricsView {
+import { D1PushRow, TotalStats } from "../types";
+
+export class GithubSvg {
 	private static getRelativePulseTime(dateStr: string | undefined): string {
 		if (!dateStr) return "Active Sync";
 		try {
@@ -72,11 +75,11 @@ export class MetricsView {
 
       .metric-unit { font-size: 12px; font-weight: 400; fill: #8b949e; }
       .tag { font-family: SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace; font-size: 12px; fill: #79c0ff; }
-      .footer-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 12px; fill: #8b949e; }
+      .footer-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 16px; fill: #8b949e; }
     </style>
   </defs>
 
-  <rect width="100%" height="100%" fill="url(#bg-grad)" rx="10" />
+  <rect width="100%" height="100%" fill="url(#bg-grad)" stroke="#444c56" stroke-width="1" rx="10" />
 
   <g transform="translate(30, 40)">
     <circle cx="10" cy="-6" r="6" fill="#58a6ff" />
@@ -157,12 +160,11 @@ export class MetricsView {
     <text x="20" y="58" class="metric-value">${totalRepos} <tspan class="metric-unit">active repos</tspan></text>
   </g>
 
-  <g transform="translate(30, 545)">
-    <circle cx="6" cy="-4" r="6" fill="#3fb950" opacity="0.25" />
-    <circle cx="6" cy="-4" r="3.5" fill="#3fb950" />
+<g transform="translate(30, 545)">
+    <circle cx="6" cy="5" r="6" fill="#3fb950" opacity="0.25" />
+    <circle cx="6" cy="5" r="3.5" fill="#3fb950" />
 
-    <text x="18" y="0" class="footer-text" font-weight="500">D1 Real-time Telemetry Active</text>
-    <text x="740" y="0" class="footer-text" text-anchor="end">Last Event: ${lastUpdated} UTC</text>
+    <text x="20" y="10" class="footer-text" font-weight="600">GITHUB LIVE TELEMETRY ACTIVE</text>
   </g>
 
 </svg>`;

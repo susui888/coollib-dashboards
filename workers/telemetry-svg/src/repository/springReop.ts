@@ -1,4 +1,4 @@
-import { ScaleMetrics, RuntimeRawRow } from "./types";
+import { ScaleMetrics, RuntimeRawRow } from "../types";
 
 export async function fetchMiniMonitorData(db: D1Database): Promise<{
 	scale: ScaleMetrics | null;

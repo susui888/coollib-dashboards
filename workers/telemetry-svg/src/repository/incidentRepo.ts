@@ -35,7 +35,7 @@ export class IncidentRepository {
                 WHERE status = 'resolved' AND resolved_at IS NOT NULL
             `).first<{ avg_minutes: number | null }>();
 
-			let avgMttr = "0m";
+			let avgMttr = "0 m";
 			if (mttrRes && mttrRes.avg_minutes !== null) {
 				const mins = Math.round(mttrRes.avg_minutes);
 				avgMttr = mins > 60 ? `${Math.floor(mins / 60)}h ${mins % 60}m` : `${mins}m`;
@@ -48,22 +48,22 @@ export class IncidentRepository {
 						status,
 						component,
 						title,
-						strftime('%m-%d %H:%M', created_at) as formatted_time,
+						strftime('%d/%m %H:%M UTC', created_at) as formatted_time,
 						ROW_NUMBER() OVER (
                   PARTITION BY component
                   ORDER BY created_at DESC
               ) as rn
 					FROM incidents
-					WHERE component IN ('spring-boot', 'cloudflare-billing', 'coollib-android')
+					WHERE component IN ('spring-boot-test', 'cloudflare-billing', 'coollib-android')
 				)
 				SELECT status, title, formatted_time as created_at
 				FROM RankedIncidents
 				WHERE rn = 1
 				ORDER BY
 					CASE component
-						WHEN 'coollib-android' THEN 1
-						WHEN 'cloudflare-billing' THEN 2
-						WHEN 'spring-boot' THEN 3
+						WHEN 'spring-boot-test' THEN 1
+						WHEN 'coollib-android' THEN 2
+						WHEN 'cloudflare-billing' THEN 3
 						END ASC
 			`).all<{ status: 'active' | 'resolved'; title: string; created_at: string }>();
 

@@ -1,6 +1,3 @@
-// src/views/incidentSvg.ts
-// Code snippet is entirely in English as requested
-
 import { IncidentSnapshotMetrics } from '../types';
 
 export function renderIncidentSvg(metrics: IncidentSnapshotMetrics): string {
@@ -13,7 +10,7 @@ export function renderIncidentSvg(metrics: IncidentSnapshotMetrics): string {
 	// Core metric cards text class mapping
 	const activeIncidentValClass = hasFault ? "val-red" : "val-gray";
 
-	return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 550 325" width="100%" height="100%">
+	return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 550 310" width="100%" height="100%">
   <defs>
     <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#0d1117" />
@@ -28,31 +25,24 @@ export function renderIncidentSvg(metrics: IncidentSnapshotMetrics): string {
     <style>
       .title { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 600; fill: #c9d1d9; }
       .card-bg { fill: #161b22; stroke: #30363d; stroke-width: 1; rx: 6px; }
-      .metric-label { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 500; fill: #8b949e; }
+      .metric-label { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 12px; font-weight: 500; fill: #8b949e; }
 
       /* SRE Core Typography Matrix */
       .val-red { font-family: "SFMono-Regular", Consolas, monospace; font-size: 18px; font-weight: 600; fill: #ff6b6b; }
       .val-gray { font-family: "SFMono-Regular", Consolas, monospace; font-size: 18px; font-weight: 600; fill: #8b949e; }
       .val-green { font-family: "SFMono-Regular", Consolas, monospace; font-size: 18px; font-weight: 600; fill: #3fb950; }
       .val-blue { font-family: "SFMono-Regular", Consolas, monospace; font-size: 18px; font-weight: 600; fill: #58a6ff; }
-      .metric-unit { font-size: 10px; font-weight: 400; fill: #8b949e; }
+      .metric-unit { font-size: 12px; font-weight: 400; fill: #8b949e; }
 
       /* Log Line Pipeline Typography */
-      .stream-header { font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 10px; font-weight: 700; fill: #8b949e; letter-spacing: 0.5px; }
-      .log-text { font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 11px; fill: #c9d1d9; }
-      .log-time { font-family: "SFMono-Regular", Consolas, monospace; font-size: 10px; fill: #8b949e; }
-      .footer-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 10px; fill: #8b949e; }
-
-      @keyframes pulse {
-          0% { opacity: 0.4; }
-          50% { opacity: 1; }
-          100% { opacity: 0.4; }
-      }
-      .status-pulse { animation: ${hasFault ? 'pulse 1.5s infinite' : 'none'}; }
+      .stream-header { font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 12px; font-weight: 700; fill: #8b949e; letter-spacing: 0.5px; }
+      .log-text { font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 12px; fill: #c9d1d9; }
+      .log-time { font-family: "SFMono-Regular", Consolas, monospace; font-size: 11px; fill: #8b949e; }
+      .footer-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 11px; fill: #8b949e; }
     </style>
   </defs>
 
-  <rect width="100%" height="100%" fill="url(#bg-grad)" rx="10" />
+  <rect width="100%" height="100%" fill="url(#bg-grad)" stroke="#444c56" stroke-width="1" rx="10" />
 
   <g transform="translate(30, 40)">
     <circle cx="6" cy="-5" r="5" fill="${statusColor}" />
@@ -75,7 +65,7 @@ export function renderIncidentSvg(metrics: IncidentSnapshotMetrics): string {
 
   <g transform="translate(360, 75)">
     <rect width="150" height="65" class="card-bg" />
-    <text x="15" y="24" class="metric-label">Avg MTTR (SLA)</text>
+    <text x="15" y="24" class="metric-label">Avg MTTR</text>
     <text x="15" y="48" class="val-blue">${metrics.avg_mttr}</text>
   </g>
 
@@ -108,11 +98,10 @@ export function renderIncidentSvg(metrics: IncidentSnapshotMetrics): string {
   <g transform="translate(30, 265)">
     <line x1="0" y1="0" x2="480" y2="0" stroke="#21262D" stroke-width="1"/>
 
-    <circle cx="6" cy="18" r="5" fill="${statusColor}" opacity="0.25" class="status-pulse" />
+    <circle cx="6" cy="18" r="5" fill="${statusColor}" opacity="0.25" />
     <circle cx="6" cy="18" r="3" fill="${statusColor}" />
-    <text x="18" y="21" class="footer-text" font-weight="600" fill="${statusColor}" letter-spacing="0.5">${statusText}</text>
 
-    <text x="480" y="21" class="footer-text" text-anchor="end">Engine: Hono + Cloudflare D1</text>
+    <text x="18" y="21" class="footer-text" font-weight="600" fill="${statusColor}" letter-spacing="0.5">${statusText}</text>
   </g>
 
 </svg>`;
