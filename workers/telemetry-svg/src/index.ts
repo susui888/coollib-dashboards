@@ -1,6 +1,4 @@
 // src/index.ts
-// Code snippet is entirely in English as requested
-
 import { Hono } from 'hono';
 import { Env } from './types';
 
@@ -13,6 +11,9 @@ import { IncidentRepository } from './repository/incidentRepo';
 import { renderIncidentSvg } from './views/incidentSvg';
 import { GithubRepository } from './repository/githubRepo';
 import { GithubSvg } from './views/githubSvg';
+
+import { LogRepository } from './repository/logRepo';
+import { renderLogSvg } from './views/logsvg';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -79,9 +80,38 @@ app.get('/api/telemetry-alerts.svg', async (c) => {
 		'Expires': '0'
 	});
 });
-// Unified Cloudflare Workers Export System
+
+
+app.get('/api/telemetry-logs.svg', async (c) => {
+	const logRepo = new LogRepository(c.env);
+
+	try {
+		const snapshot = await logRepo.getLogSnapshot();
+		const svgContent = renderLogSvg(snapshot);
+
+		// Crucial headers to bypass GitHub Camo aggressive image caching
+		return c.text(svgContent, 200, {
+			'Content-Type': 'image/svg+xml;charset=UTF-8',
+			'Cache-Control': 'no-cache, no-store, must-revalidate, proxy-revalidate, max-age=0',
+			'Pragma': 'no-cache',
+			'Expires': '0',
+			'Surrogate-Control': 'no-store'
+		});
+	} catch (error: any) {
+		// Fallback minimal SVG error rendering could go here
+		return c.text(`SVG Generation Error: ${error.message}`, 500);
+	}
+});
+
+
+// export default {
+// 	fetch: app.fetch,
+// 	async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+// 	}
+// };
+
 export default {
-	fetch: app.fetch,
+	fetch: (request: Request, env: Env, ctx: ExecutionContext) => app.fetch(request, env, ctx),
 	async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
 	}
 };

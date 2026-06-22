@@ -47,3 +47,22 @@ export interface RuntimeRawRow {
 export interface Env {
 	DB: D1Database;
 }
+
+export interface LogEvent {
+	id: number;
+	timestamp: string; // ISO 8601 string from Instant
+	environment: string;
+	platform: string;
+	level: string;
+	traceId: string | null;
+	tag: string | null;
+	message: string;
+	stackTrace: string | null;
+}
+
+export interface LogMetrics {
+	total_logs: number;
+	error_count: number;
+	active_traces: number;
+	recent_logs: LogEvent[];
+}
