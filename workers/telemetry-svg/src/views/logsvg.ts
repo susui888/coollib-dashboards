@@ -6,6 +6,19 @@ export function renderLogSvg(metrics: LogMetrics): string {
 	const statusText = hasIssues ? "ERRORS" : "HEALTHY";
 	const errorValClass = hasIssues ? "val-red" : "val-green";
 
+	const latestLog = metrics.recent_logs?.[0];
+	let syncStatus = "CF Tunnel";
+
+	if (latestLog) {
+		const diffMs = Date.now() - new Date(latestLog.timestamp).getTime();
+		const diffMins = Math.floor(diffMs / 60000);
+
+		// 如果日志是 2 分钟内的，显示 Just Now，否则显示具体几分钟前
+		syncStatus += diffMins <= 2 ? " (Just Now)" : ` (${diffMins}m ago)`;
+	} else {
+		syncStatus += " (Live)";
+	}
+
 	// 动态计算流量分布
 	const logs = metrics.recent_logs || [];
 	const platformCount = logs.reduce((acc, log) => {
@@ -98,13 +111,7 @@ export function renderLogSvg(metrics: LogMetrics): string {
 
   <g transform="translate(30, 35)">
     <circle cx="5" cy="-4" r="4.5" fill="${statusColor}" />
-    <text x="18" y="0" class="title">CoolLib Telemetry System</text>
-
-    <text x="405" y="0" class="distribution-text" text-anchor="end">
-        <tspan fill="#58A6FF">SRV:${pctBackend}%</tspan> ·
-        <tspan fill="#3FB950">AND:${pctAndroid}%</tspan> ·
-        <tspan fill="#A371F7">IOS:${pctIos}%</tspan>
-    </text>
+    <text x="18" y="0" class="title">CoolLib Core Telemetry</text>
 
     <g transform="translate(425, -13)">
       <rect width="55" height="16" rx="3" fill="#336791" />
@@ -146,12 +153,7 @@ export function renderLogSvg(metrics: LogMetrics): string {
     <circle cx="5" cy="14" r="3" fill="${statusColor}" />
     <text x="16" y="17" class="footer-text" font-weight="600" fill="${statusColor}" letter-spacing="0.3">${statusText}</text>
 
-    <g transform="translate(210, 10)">
-      <text x="70" y="7" class="distribution-text" fill="#6e7681">Edge P95:</text>
-      <text x="122" y="7" class="log-mono" font-weight="bold" fill="#3FB950">${p95Latency}</text>
-    </g>
-
-    <text x="480" y="17" class="footer-text" text-anchor="end">Sync: CF Tunnel</text>
+    <text x="480" y="17" class="footer-text" text-anchor="end">Sync: ${syncStatus}</text>
   </g>
 
 </svg>`.trim();

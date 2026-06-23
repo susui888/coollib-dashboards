@@ -14,6 +14,8 @@ import { GithubSvg } from './views/githubSvg';
 
 import { LogRepository } from './repository/logRepo';
 import { renderLogSvg } from './views/logsvg';
+import {AndroidRepository} from "./repository/androidRepo";
+import {AndroidAnalyticsSvg} from "./views/AndroidAnalyticsSvg";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -89,29 +91,61 @@ app.get('/api/telemetry-logs.svg', async (c) => {
 		const snapshot = await logRepo.getLogSnapshot();
 		const svgContent = renderLogSvg(snapshot);
 
-		// Crucial headers to bypass GitHub Camo aggressive image caching
 		return c.text(svgContent, 200, {
 			'Content-Type': 'image/svg+xml;charset=UTF-8',
-			'Cache-Control': 'no-cache, no-store, must-revalidate, proxy-revalidate, max-age=0',
-			'Pragma': 'no-cache',
-			'Expires': '0',
-			'Surrogate-Control': 'no-store'
+			// 缓存 2 分钟（120秒）
+			'Cache-Control': 'public, max-age=120, s-maxage=120, must-revalidate',
 		});
 	} catch (error: any) {
-		// Fallback minimal SVG error rendering could go here
-		return c.text(`SVG Generation Error: ${error.message}`, 500);
+		// 当数据库挂掉时，不缓存错误结果，设置不缓存
+		return c.text(`SVG Generation Error: ${error.message}`, 500, {
+			'Cache-Control': 'no-store, no-cache, max-age=0'
+		});
 	}
 });
 
 
-// export default {
-// 	fetch: app.fetch,
-// 	async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
-// 	}
-// };
+app.get('/api/telemetry-android.svg', async (c) => {
+	const today = new Date();
+
+	const formatSqlDate = (d: Date) => {
+		const y = d.getFullYear();
+		const m = String(d.getMonth() + 1).padStart(2, '0');
+		const r = String(d.getDate()).padStart(2, '0');
+		return `${y}-${m}-${r}`;
+	};
+
+	const targetDate = formatSqlDate(today);
+
+	const startDate = new Date(today);
+	startDate.setDate(today.getDate() - 6); // 向前追溯 6 天以完美闭环 7 天滑动窗口
+
+	const formatDisplayDate = (d: Date) => {
+		const y = d.getFullYear();
+		const m = String(d.getMonth() + 1).padStart(2, '0');
+		const r = String(d.getDate()).padStart(2, '0');
+		return `${y}.${m}.${r}`;
+	};
+
+	const daySpan = `${formatDisplayDate(startDate)} - ${formatDisplayDate(today)}`;
+
+	const repo = new AndroidRepository(c.env.DB);
+	const metrics = await repo.fetchAndroidMetrics(targetDate);
+
+	const svg = AndroidAnalyticsSvg.renderSvg(metrics, daySpan);
+
+	return c.body(svg, 200, {
+		'Content-Type': 'image/svg+xml;charset=UTF-8',
+		'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+		'Pragma': 'no-cache',
+		'Expires': '0'
+	});
+});
 
 export default {
-	fetch: (request: Request, env: Env, ctx: ExecutionContext) => app.fetch(request, env, ctx),
+	fetch: app.fetch,
 	async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
 	}
 };
+
+

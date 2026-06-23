@@ -66,3 +66,27 @@ export interface LogMetrics {
 	active_traces: number;
 	recent_logs: LogEvent[];
 }
+
+
+export interface AndroidAnalyticsMetrics {
+	/** Total HTTP request volume intercepted from summary_api_performance */
+	total_requests: number;
+
+	/** Computed network failure percentage: (error_requests / total_requests) * 100 */
+	error_rate: number;
+
+	/** Rounded 95th percentile network latency in milliseconds */
+	p95_latency_ms: number;
+
+	/** Computed business conversion percentage: (rent_success / scan_opened) * 100 */
+	funnel_conversion_rate: number;
+
+	/** Highly trending single search term extracted from funnel metadata */
+	top_keyword: string;
+
+	/** Name/Signature of the most frequent Android runtime exception */
+	top_crash_name: string;
+
+	/** Total occurrence counter for the primary runtime exception */
+	top_crash_count: number;
+}
