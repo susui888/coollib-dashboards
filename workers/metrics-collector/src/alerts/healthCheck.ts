@@ -10,7 +10,7 @@ export async function checkSpringHealth(env: Env, ctx: ExecutionContext): Promis
 
 	try {
 		const controller = new AbortController();
-		const timeoutId = setTimeout(() => controller.abort(), 5000);
+		const timeoutId = setTimeout(() => controller.abort(), 10000);
 
 		const response = await fetch(healthUrl, { signal: controller.signal });
 		clearTimeout(timeoutId);
@@ -26,7 +26,7 @@ export async function checkSpringHealth(env: Env, ctx: ExecutionContext): Promis
 			errorMessage = `HTTP Server Error: ${response.status}`;
 		}
 	} catch (err: any) {
-		errorMessage = err.name === 'AbortError' ? 'Connection timeout (5s)' : err.message;
+		errorMessage = err.name === 'AbortError' ? 'Connection timeout (10s)' : err.message;
 	}
 
 	try {
