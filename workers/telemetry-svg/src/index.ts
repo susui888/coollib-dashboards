@@ -1,23 +1,49 @@
 // src/index.ts
 import { Hono } from 'hono';
-import { Env } from './types';
-
-// Route 1 (System Telemetry Dashboard)
+import { DateSpanResult, Env } from './types';
 import { fetchMiniMonitorData } from "./repository/springReop";
 import { renderMonitorSvg } from "./views/springSvg";
-
-// Route 2 & 3 (Incident Monitor & GitHub Activity Dashboard)
 import { IncidentRepository } from './repository/incidentRepo';
 import { renderIncidentSvg } from './views/incidentSvg';
 import { GithubRepository } from './repository/githubRepo';
 import { GithubSvg } from './views/githubSvg';
-
 import { LogRepository } from './repository/logRepo';
 import { renderLogSvg } from './views/logsvg';
-import {AndroidRepository} from "./repository/androidRepo";
-import {AndroidAnalyticsSvg} from "./views/AndroidAnalyticsSvg";
+import { AndroidRepository } from "./repository/androidRepo";
+import { AndroidAnalyticsSvg } from "./views/AndroidAnalyticsSvg";
+import {iOSRepository} from "./repository/iOSRepo";
+import {iOSAnalyticsSvg} from "./views/iOSAnalyticsSvg";
 
 const app = new Hono<{ Bindings: Env }>();
+
+const TELEMETRY_NO_CACHE_HEADERS = {
+	'Content-Type': 'image/svg+xml;charset=UTF-8',
+	'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+	'Pragma': 'no-cache',
+	'Expires': '0'
+} as const;
+
+export function getRollingSevenDaySpan(now: Date = new Date()): DateSpanResult {
+	const pad = (n: number) => String(n).padStart(2, '0');
+
+	// Helper to format as SQL date standard: YYYY-MM-DD
+	const toSqlFormat = (d: Date) =>
+		`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+	// Helper to format as Display standard: YYYY.MM.DD
+	const toDisplayFormat = (d: Date) =>
+		`${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}`;
+
+	const targetDate = toSqlFormat(now);
+
+	// Roll backward exactly 6 days to safely capture a closed 7-day analytics matrix
+	const startDate = new Date(now);
+	startDate.setDate(now.getDate() - 6);
+
+	const displaySpan = `${toDisplayFormat(startDate)} - ${toDisplayFormat(now)}`;
+
+	return { targetDate, displaySpan };
+}
 
 // Global SRE telemetry error interceptor - Handles failover gracefully for all routes
 app.onError((error, c) => {
@@ -30,9 +56,6 @@ app.onError((error, c) => {
 	return c.text(errorSvg, 500, { 'Content-Type': 'image/svg+xml;charset=UTF-8' });
 });
 
-/**
- * Route 1: System Telemetry MiniMonitor (Clean 30-Min Edge Cached Layer)
- */
 app.get('/api/telemetry-spring.svg', async (c) => {
 	const { scale, runtimeResults } = await fetchMiniMonitorData(c.env.DB);
 	const svgContent = renderMonitorSvg(scale, runtimeResults);
@@ -44,45 +67,24 @@ app.get('/api/telemetry-spring.svg', async (c) => {
 	});
 });
 
-
-/**
- * Route 2: GitHub Commits & Activity Dashboard
- */
 app.get('/api/telemetry-github.svg', async (c) => {
 	const metricsRepo = new GithubRepository(c.env.DB);
-
 	const [totalStats, latestPush] = await Promise.all([
 		metricsRepo.getTotalStats(),
 		metricsRepo.getLatestPushMetric()
 	]);
 
 	const svgContent = GithubSvg.renderSvg(totalStats, latestPush);
-
-	return c.text(svgContent, 200, {
-		'Content-Type': 'image/svg+xml;charset=UTF-8',
-		'Cache-Control': 'no-cache, no-store, must-revalidate, proxy-revalidate',
-		'Pragma': 'no-cache',
-		'Expires': '0'
-	});
+	return c.body(svgContent, 200, TELEMETRY_NO_CACHE_HEADERS);
 });
 
-
-/**
- * Route 3: Live Incident & SRE Alert Monitor Canvas
- */
 app.get('/api/telemetry-alerts.svg', async (c) => {
 	const incidentRepo = new IncidentRepository(c.env);
 	const snapshot = await incidentRepo.getIncidentSnapshot();
 	const svgContent = renderIncidentSvg(snapshot);
 
-	return c.text(svgContent, 200, {
-		'Content-Type': 'image/svg+xml;charset=UTF-8',
-		'Cache-Control': 'no-cache, no-store, must-revalidate, proxy-revalidate',
-		'Pragma': 'no-cache',
-		'Expires': '0'
-	});
+	return c.body(svgContent, 200, TELEMETRY_NO_CACHE_HEADERS);
 });
-
 
 app.get('/api/telemetry-logs.svg', async (c) => {
 	const logRepo = new LogRepository(c.env);
@@ -106,40 +108,21 @@ app.get('/api/telemetry-logs.svg', async (c) => {
 
 
 app.get('/api/telemetry-android.svg', async (c) => {
-	const today = new Date();
-
-	const formatSqlDate = (d: Date) => {
-		const y = d.getFullYear();
-		const m = String(d.getMonth() + 1).padStart(2, '0');
-		const r = String(d.getDate()).padStart(2, '0');
-		return `${y}-${m}-${r}`;
-	};
-
-	const targetDate = formatSqlDate(today);
-
-	const startDate = new Date(today);
-	startDate.setDate(today.getDate() - 6); // 向前追溯 6 天以完美闭环 7 天滑动窗口
-
-	const formatDisplayDate = (d: Date) => {
-		const y = d.getFullYear();
-		const m = String(d.getMonth() + 1).padStart(2, '0');
-		const r = String(d.getDate()).padStart(2, '0');
-		return `${y}.${m}.${r}`;
-	};
-
-	const daySpan = `${formatDisplayDate(startDate)} - ${formatDisplayDate(today)}`;
-
+	const { targetDate, displaySpan } = getRollingSevenDaySpan();
 	const repo = new AndroidRepository(c.env.DB);
 	const metrics = await repo.fetchAndroidMetrics(targetDate);
 
-	const svg = AndroidAnalyticsSvg.renderSvg(metrics, daySpan);
+	const svgContent = AndroidAnalyticsSvg.renderSvg(metrics, displaySpan);
+	return c.body(svgContent, 200, TELEMETRY_NO_CACHE_HEADERS);
+});
 
-	return c.body(svg, 200, {
-		'Content-Type': 'image/svg+xml;charset=UTF-8',
-		'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-		'Pragma': 'no-cache',
-		'Expires': '0'
-	});
+app.get('/api/telemetry-ios.svg', async (c) => {
+	const { targetDate, displaySpan } = getRollingSevenDaySpan();
+	const repo = new iOSRepository(c.env.DB);
+	const metrics = await repo.fetchiOSMetrics(targetDate);
+
+	const svgContent = iOSAnalyticsSvg.renderSvg(metrics, displaySpan);
+	return c.body(svgContent, 200, TELEMETRY_NO_CACHE_HEADERS);
 });
 
 export default {

@@ -1,9 +1,8 @@
-// src/repository/androidRepo.ts
-// Code snippet is entirely in English as requested
+// src/repository/iOSRepo.ts
 
 import { MobileAnalyticsMetrics } from "../types";
 
-export class AndroidRepository {
+export class iOSRepository {
 	private db: D1Database;
 
 	constructor(db: D1Database) {
@@ -11,10 +10,10 @@ export class AndroidRepository {
 	}
 
 	/**
-	 * Aggregates SRE Golden Signals and business intelligence for the Android platform
+	 * Aggregates SRE Golden Signals and business intelligence for the iOS platform
 	 * by calculating the rolling mean/totals over the last 7 days ending on targetDate.
 	 */
-	async fetchAndroidMetrics(targetDate: string): Promise<MobileAnalyticsMetrics> {
+	async fetchiOSMetrics(targetDate: string): Promise<MobileAnalyticsMetrics> {
 		// 1. Aggregate 7-day performance metrics (Total volume and mathematical averages)
 		const perfQuery = `
 			SELECT
@@ -23,7 +22,7 @@ export class AndroidRepository {
 				AVG(p95_ms) as avg_p95_ms
 			FROM summary_api_performance
 			WHERE snapshot_date BETWEEN DATE(?, '-6 days') AND ?
-			  AND os_platform = 'Android'
+			  AND os_platform = 'iOS'
 		`;
 
 		// 2. Aggregate 7-day business funnel logs & collect search metadata tokens
@@ -34,7 +33,7 @@ export class AndroidRepository {
 				GROUP_CONCAT(top_searched_keywords, ',') as bundled_keywords
 			FROM summary_business_funnel
 			WHERE snapshot_date BETWEEN DATE(?, '-6 days') AND ?
-			  AND os_platform = 'Android'
+			  AND os_platform = 'iOS'
 		`;
 
 		// 3. Find the single most destructive crash based on 7-day cumulative impact
@@ -42,7 +41,7 @@ export class AndroidRepository {
 			SELECT error_name, SUM(occurrence_count) as total_occurrence
 			FROM summary_crash_errors
 			WHERE snapshot_date BETWEEN DATE(?, '-6 days') AND ?
-			  AND os_platform = 'Android'
+			  AND os_platform = 'iOS'
 			GROUP BY error_name
 			ORDER BY total_occurrence DESC
 				LIMIT 1

@@ -68,7 +68,7 @@ export interface LogMetrics {
 }
 
 
-export interface AndroidAnalyticsMetrics {
+export interface MobileAnalyticsMetrics {
 	/** Total HTTP request volume intercepted from summary_api_performance */
 	total_requests: number;
 
@@ -89,4 +89,9 @@ export interface AndroidAnalyticsMetrics {
 
 	/** Total occurrence counter for the primary runtime exception */
 	top_crash_count: number;
+}
+
+export interface DateSpanResult {
+	targetDate: string;   // "YYYY-MM-DD" for SQL telemetry queries
+	displaySpan: string;  // "YYYY.MM.DD - YYYY.MM.DD" for SVG panel header
 }

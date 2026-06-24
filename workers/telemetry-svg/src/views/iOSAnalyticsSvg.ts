@@ -1,9 +1,8 @@
-// src/views/androidAnalyticsSvg.ts
-// Code snippet is entirely in English as requested
+// src/views/iOSAnalyticsSvg.ts
 
 import { MobileAnalyticsMetrics } from "../types";
 
-export class AndroidAnalyticsSvg {
+export class iOSAnalyticsSvg {
 	/**
 	 * Renders a highly polished 800x490 micro-dashboard SVG
 	 * optimized for GitHub README data injection with active breathing animation.
@@ -21,14 +20,14 @@ export class AndroidAnalyticsSvg {
 
 		// System-wide dynamic state mapping
 		const statusColor = isDegraded ? "#FF6B6B" : "#3fb950";
-		const statusText = isDegraded ? "ANDROID SYSTEM OPERATIONAL" : "ANDROID SYSTEM OPERATIONAL";
+		const statusText = isDegraded ? "IOS SYSTEM OPERATIONAL" : "IOS SYSTEM OPERATIONAL";
 
 		// Keep the single metric text red if it exceeds the limit, providing subtle engineering hints
 		const errorClass = metrics.error_rate >= 1.5 ? "val-red" : "val-green";
 
 		// 📌 Double-check to wipe out any physical/escaped quotes before layout rendering
 		const cleanKeyword = String(metrics.top_keyword ?? "N/A")
-			.replace(/["'区域“”\s]/g, "")
+			.replace(/["'region“”\s]/g, "")
 			.trim();
 
 		// Dynamic Sparklines matching the 360x75 card coordinate matrices
@@ -92,7 +91,7 @@ export class AndroidAnalyticsSvg {
 
   <g transform="translate(30, 40)">
     <circle cx="10" cy="-6" r="6" fill="#3fb950" />
-    <text x="26" y="0" class="title">Android Core Metrics Panel</text>
+    <text x="26" y="0" class="title">iOS Core Metrics Panel</text>
     <text x="740" y="0" class="meta-date" text-anchor="end">Snapshot: ${displayDate}</text>
     <rect x="0" y="12" width="740" height="1" fill="url(#accent-grad)" opacity="0.4" />
   </g>
@@ -125,7 +124,7 @@ export class AndroidAnalyticsSvg {
 
   <g transform="translate(30, 280)">
     <rect width="740" height="75" class="card-bg" />
-    <text x="20" y="30" class="metric-label">Critical Android Runtime Crash</text>
+    <text x="20" y="30" class="metric-label">Critical iOS Runtime Crash</text>
     <text x="20" y="55" class="${hasCrash ? 'val-red' : 'val-green'}" font-size="14px">${metrics.top_crash_name}</text>
     <text x="720" y="55" class="metric-unit" text-anchor="end">Occurrences: ${metrics.top_crash_count}</text>
   </g>
