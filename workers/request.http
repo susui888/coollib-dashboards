@@ -1,0 +1,12 @@
+### Get the coollib status from Spring Boot
+GET https://coollib.ryansu.uk/api/stats/counts
+
+### Get 24h library metrics from worker
+GET https://status.ryansu.uk/api/stats?range=24h
+
+### Get 7 Days library metrics from worker
+GET https://status.ryansu.uk/api/stats?range=7
+
+### Get 30 Days library metrics from workder
+GET https://status.ryansu.uk/api/stats?range=30
+
