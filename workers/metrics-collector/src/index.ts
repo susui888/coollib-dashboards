@@ -33,6 +33,12 @@ function prepareRetentionTasks(env: Env, batchStatements: any[]): void {
 export default {
 	fetch: app.fetch,
 
+	/*
+	  async fetch(request, env, ctx) {
+	 	return app.fetch(request, env, ctx);
+	  }
+	*/
+
 	async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
 		console.log(`Cron trigger [${event.cron}] started at: ${new Date().toISOString()}`);
 
