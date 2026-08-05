@@ -10,3 +10,25 @@ GET https://status.ryansu.uk/api/stats?range=7
 ### Get 30 Days library metrics from workder
 GET https://status.ryansu.uk/api/stats?range=30
 
+
+
+### Get basic actuator from Spring Boot
+https://coollib.ryansu.uk/actuator/metrics
+
+### Get UpTime
+https://coollib.ryansu.uk/actuator/metrics/process.uptime
+
+### Get CPU
+https://coollib.ryansu.uk/actuator/metrics/process.cpu.usage
+
+### Get Memory
+https://coollib.ryansu.uk/actuator/metrics/jvm.memory.used
+
+### Get Request Count
+https://coollib.ryansu.uk/actuator/metrics/spring.security.http.secured.requests
+
+### Get DB Pool
+https://coollib.ryansu.uk/actuator/metrics/hikaricp.connections.active
+
+###
+GET https://mylib-telemetry-core.susui888.workers.dev/api/stats?range=7D
