@@ -47,7 +47,7 @@ export default {
 
 		switch (event.cron) {
 
-			case "*/2 * * * *":
+			case "*/10 * * * *":
 				console.log("Running 2-Min Live Critical Health Check...");
 				ctx.waitUntil(checkSpringHealth(env, ctx));
 
