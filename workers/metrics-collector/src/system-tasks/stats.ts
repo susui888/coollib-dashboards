@@ -8,14 +8,12 @@ export async function prepareStatsTasks(env: Env, batchStatements: D1PreparedSta
 		if (resp.ok) {
 			const data = await resp.json() as StatsCountsResponse;
 
-			const updatedUsers = data.users + 500;
-
 			// Step 2: Assemble atomic transactional mutations for state history persistence
 			batchStatements.push(
 				// Statement A: Push a fresh micro-snapshot of cumulative system entries into the history table
 				env.DB.prepare(
 					"INSERT INTO stats_history (books, users, loans, reviews, review_images) VALUES (?, ?, ?, ?, ?)"
-				).bind(data.books, updatedUsers, data.loans, data.reviews, data.reviewImage),
+				).bind(data.books, data.users, data.loans, data.reviews, data.reviewImage),
 
 				// Statement B: Execute cascading house-keeping cleanup to truncate historical footprints older than 30 days
 				env.DB.prepare(

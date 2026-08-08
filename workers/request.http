@@ -32,3 +32,6 @@ https://coollib.ryansu.uk/actuator/metrics/hikaricp.connections.active
 
 ###
 GET https://mylib-telemetry-core.susui888.workers.dev/api/stats?range=7D
+
+###
+GET https://mylib-telemetry-core.susui888.workers.dev/api/analytics?rang=7D
